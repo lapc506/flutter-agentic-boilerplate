@@ -6,8 +6,8 @@
 |----------|-------|
 | **ID** | `flutter-firebase` |
 | **Nivel** | 🟡 Intermedio |
-| **Versión** | 1.0.0 |
-| **Keywords** | `firebase`, `firestore`, `auth`, `cloud-messaging`, `analytics` |
+| **Versión** | 2.0.0 |
+| **Keywords** | `firebase`, `firestore`, `auth`, `cloud-messaging`, `analytics`, `storage`, `remote-config`, `crashlytics`, `provider` |
 | **Referencia** | [FlutterFire](https://firebase.flutter.dev/) |
 
 ## 🔑 Keywords para Invocación
@@ -17,6 +17,10 @@
 - `firebase-auth`
 - `cloud-messaging`
 - `firebase-analytics`
+- `firebase-storage`
+- `firebase-remote-config`
+- `firebase-crashlytics`
+- `provider`
 - `@skill:firebase`
 
 ### Ejemplos de Prompts
@@ -35,7 +39,7 @@ Implementa Firebase Authentication y Cloud Messaging
 
 ## 📖 Descripción
 
-Firebase Integration proporciona servicios backend completos: Authentication, Firestore Database, Cloud Storage, Push Notifications, Analytics, Crashlytics y Remote Config. Incluye configuración multiplataforma y mejores prácticas.
+Firebase Integration proporciona servicios backend completos: Authentication (Email/Password y Google Sign-In), Firestore Database, Cloud Storage, Push Notifications (FCM), Analytics (con tracking de screens, eventos personalizados, user ID y propiedades), Crashlytics y Remote Config. Incluye integración con Provider para state management y configuración multiplataforma con mejores prácticas.
 
 ### ✅ Cuándo Usar Este Skill
 
@@ -65,7 +69,8 @@ lib/
 │   └── services/
 │       ├── analytics_service.dart
 │       ├── crashlytics_service.dart
-│       └── remote_config_service.dart
+│       ├── remote_config_service.dart
+│       └── storage_service.dart
 │
 ├── features/
 │   ├── authentication/
@@ -82,6 +87,8 @@ lib/
 │   │   └── presentation/
 │   │       ├── screens/
 │   │       │   └── login_screen.dart
+│   │       ├── providers/
+│   │       │   └── auth_provider.dart
 │   │       └── bloc/
 │   │           └── auth_bloc.dart
 │   │
@@ -140,6 +147,12 @@ dependencies:
   
   # Remote Config
   firebase_remote_config: ^4.3.8
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Image Picker (para Storage)
+  image_picker: ^1.0.7
   
   # Utils
   equatable: ^2.0.5
@@ -663,9 +676,18 @@ class FCMService {
 
 ### 5. Firebase Analytics
 
+Firebase Analytics permite rastrear el comportamiento de los usuarios, eventos personalizados, nombres de pantallas, user ID y propiedades de usuario.
+
+**Características principales:**
+- ✅ Tracking automático de nombres de pantallas
+- ✅ Eventos personalizados con parámetros
+- ✅ Configuración de User ID
+- ✅ Propiedades de usuario personalizadas
+
 ```dart
 // lib/core/services/analytics_service.dart
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 
 class AnalyticsService {
   final FirebaseAnalytics _analytics;
@@ -673,38 +695,66 @@ class AnalyticsService {
   AnalyticsService({FirebaseAnalytics? analytics})
       : _analytics = analytics ?? FirebaseAnalytics.instance;
 
+  // Observer para tracking automático de screens
   FirebaseAnalyticsObserver get observer =>
       FirebaseAnalyticsObserver(analytics: _analytics);
 
-  // Screen tracking
-  Future<void> logScreenView(String screenName) async {
-    await _analytics.logScreenView(screenName: screenName);
+  // Track screen view con nombre personalizado
+  Future<void> logScreenView({
+    required String screenName,
+    String? screenClass,
+  }) async {
+    await _analytics.logScreenView(
+      screenName: screenName,
+      screenClass: screenClass ?? screenName,
+    );
   }
 
-  // Event tracking
-  Future<void> logEvent(
-    String name, {
+  // Track custom events con parámetros
+  Future<void> logCustomEvent({
+    required String eventName,
     Map<String, Object?>? parameters,
   }) async {
     await _analytics.logEvent(
-      name: name,
+      name: eventName,
       parameters: parameters,
     );
   }
 
-  // User properties
+  // Set user ID (debe llamarse después del login)
   Future<void> setUserId(String userId) async {
     await _analytics.setUserId(id: userId);
   }
 
-  Future<void> setUserProperty(String name, String value) async {
+  // Clear user ID (debe llamarse en logout)
+  Future<void> clearUserId() async {
+    await _analytics.setUserId(id: null);
+  }
+
+  // Set user properties (máximo 25 propiedades)
+  Future<void> setUserProperty({
+    required String name,
+    required String? value,
+  }) async {
     await _analytics.setUserProperty(name: name, value: value);
   }
 
+  // Set multiple user properties
+  Future<void> setUserProperties(Map<String, String?> properties) async {
+    for (final entry in properties.entries) {
+      await setUserProperty(name: entry.key, value: entry.value);
+    }
+  }
+
   // E-commerce events
-  Future<void> logAddToCart(String productId, String productName, double price) async {
+  Future<void> logAddToCart({
+    required String productId,
+    required String productName,
+    required double price,
+    String currency = 'USD',
+  }) async {
     await _analytics.logAddToCart(
-      currency: 'USD',
+      currency: currency,
       value: price,
       items: [
         AnalyticsEventItem(
@@ -716,20 +766,105 @@ class AnalyticsService {
     );
   }
 
-  Future<void> logPurchase(double value, List<AnalyticsEventItem> items) async {
+  Future<void> logPurchase({
+    required double value,
+    required List<AnalyticsEventItem> items,
+    String currency = 'USD',
+    String? transactionId,
+  }) async {
     await _analytics.logPurchase(
-      currency: 'USD',
+      currency: currency,
       value: value,
       items: items,
+      transactionId: transactionId,
     );
   }
 
-  Future<void> logLogin(String method) async {
+  // Authentication events
+  Future<void> logLogin({required String method}) async {
     await _analytics.logLogin(loginMethod: method);
   }
 
-  Future<void> logSignUp(String method) async {
+  Future<void> logSignUp({required String method}) async {
     await _analytics.logSignUp(signUpMethod: method);
+  }
+}
+
+// Uso con NavigatorObserver para tracking automático de screens
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final analyticsService = AnalyticsService();
+
+    return MaterialApp(
+      title: 'Firebase App',
+      navigatorObservers: [
+        analyticsService.observer, // Tracking automático de screens
+      ],
+      home: const HomeScreen(),
+    );
+  }
+}
+
+// Ejemplo de uso en un widget
+class ProductScreen extends StatelessWidget {
+  const ProductScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final analytics = AnalyticsService();
+
+    // Track screen view manualmente (si no usas observer)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      analytics.logScreenView(screenName: 'product_detail');
+    });
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Product')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            // Track custom event
+            analytics.logCustomEvent(
+              eventName: 'product_viewed',
+              parameters: {
+                'product_id': '123',
+                'product_name': 'Example Product',
+                'product_category': 'Electronics',
+              },
+            );
+          },
+          child: const Text('View Product'),
+        ),
+      ),
+    );
+  }
+}
+
+// Ejemplo de configuración de user properties después del login
+class AuthService {
+  final AnalyticsService _analytics = AnalyticsService();
+
+  Future<void> onUserLogin(String userId, Map<String, String> userData) async {
+    // Set user ID
+    await _analytics.setUserId(userId);
+
+    // Set user properties
+    await _analytics.setUserProperties({
+      'user_type': userData['type'] ?? 'regular',
+      'subscription_status': userData['subscription'] ?? 'free',
+      'sign_up_method': userData['method'] ?? 'email',
+    });
+
+    // Log login event
+    await _analytics.logLogin(method: userData['method'] ?? 'email');
+  }
+
+  Future<void> onUserLogout() async {
+    // Clear user ID
+    await _analytics.clearUserId();
   }
 }
 ```
@@ -784,6 +919,397 @@ class CrashlyticsService {
 }
 ```
 
+### 7. Remote Config
+
+```dart
+// lib/core/services/remote_config_service.dart
+import 'package:firebase_remote_config/firebase_remote_config.dart';
+
+class RemoteConfigService {
+  final FirebaseRemoteConfig _remoteConfig;
+
+  RemoteConfigService({FirebaseRemoteConfig? remoteConfig})
+      : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
+
+  Future<void> initialize() async {
+    await _remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        minimumFetchInterval: const Duration(hours: 1),
+      ),
+    );
+
+    // Set default values
+    await _remoteConfig.setDefaults({
+      'feature_enabled': false,
+      'max_items_per_page': 20,
+      'app_version': '1.0.0',
+      'maintenance_mode': false,
+    });
+
+    // Fetch and activate
+    await fetchAndActivate();
+  }
+
+  Future<bool> fetchAndActivate() async {
+    try {
+      final fetched = await _remoteConfig.fetchAndActivate();
+      return fetched;
+    } catch (e) {
+      print('Error fetching remote config: $e');
+      return false;
+    }
+  }
+
+  // Get values
+  bool getBool(String key) => _remoteConfig.getBool(key);
+  String getString(String key) => _remoteConfig.getString(key);
+  int getInt(String key) => _remoteConfig.getInt(key);
+  double getDouble(String key) => _remoteConfig.getDouble(key);
+
+  // Listen to config updates
+  Stream<void> get onConfigUpdated => _remoteConfig.onConfigUpdated;
+
+  // Force fetch
+  Future<void> fetch() async {
+    await _remoteConfig.fetch();
+  }
+
+  // Activate fetched values
+  Future<bool> activate() async {
+    return await _remoteConfig.activate();
+  }
+}
+```
+
+### 8. Firebase Storage
+
+```dart
+// lib/core/services/storage_service.dart
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+
+class StorageService {
+  final FirebaseStorage _storage;
+
+  StorageService({FirebaseStorage? storage})
+      : _storage = storage ?? FirebaseStorage.instance;
+
+  // Upload file
+  Future<String> uploadFile({
+    required File file,
+    required String path,
+    String? fileName,
+    Function(double)? onProgress,
+  }) async {
+    try {
+      final ref = _storage.ref(path).child(fileName ?? file.path.split('/').last);
+      
+      final uploadTask = ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: _getContentType(file.path),
+          customMetadata: {
+            'uploaded_at': DateTime.now().toIso8601String(),
+          },
+        ),
+      );
+
+      // Listen to upload progress
+      uploadTask.snapshotEvents.listen((taskSnapshot) {
+        final progress = taskSnapshot.bytesTransferred / taskSnapshot.totalBytes;
+        onProgress?.call(progress);
+      });
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      throw Exception('Upload failed: ${e.message}');
+    }
+  }
+
+  // Upload image from image picker
+  Future<String> uploadImage({
+    required XFile image,
+    required String path,
+    Function(double)? onProgress,
+  }) async {
+    return await uploadFile(
+      file: File(image.path),
+      path: path,
+      fileName: image.name,
+      onProgress: onProgress,
+    );
+  }
+
+  // Download file
+  Future<File> downloadFile({
+    required String url,
+    required String localPath,
+  }) async {
+    try {
+      final ref = _storage.refFromURL(url);
+      final file = File(localPath);
+      
+      await ref.writeToFile(file);
+      return file;
+    } on FirebaseException catch (e) {
+      throw Exception('Download failed: ${e.message}');
+    }
+  }
+
+  // Get download URL
+  Future<String> getDownloadUrl(String path) async {
+    try {
+      return await _storage.ref(path).getDownloadURL();
+    } on FirebaseException catch (e) {
+      throw Exception('Failed to get download URL: ${e.message}');
+    }
+  }
+
+  // Delete file
+  Future<void> deleteFile(String path) async {
+    try {
+      await _storage.ref(path).delete();
+    } on FirebaseException catch (e) {
+      throw Exception('Delete failed: ${e.message}');
+    }
+  }
+
+  // List files in a path
+  Future<List<Reference>> listFiles(String path) async {
+    try {
+      final listResult = await _storage.ref(path).listAll();
+      return listResult.items;
+    } on FirebaseException catch (e) {
+      throw Exception('List failed: ${e.message}');
+    }
+  }
+
+  // Get file metadata
+  Future<FullMetadata> getMetadata(String path) async {
+    try {
+      return await _storage.ref(path).getMetadata();
+    } on FirebaseException catch (e) {
+      throw Exception('Failed to get metadata: ${e.message}');
+    }
+  }
+
+  String _getContentType(String filePath) {
+    final extension = filePath.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'pdf':
+        return 'application/pdf';
+      case 'mp4':
+        return 'video/mp4';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+}
+```
+
+### 9. Provider State Management con Firebase
+
+```dart
+// lib/features/authentication/presentation/providers/auth_provider.dart
+import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import '../../domain/entities/user.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+
+class AuthProvider with ChangeNotifier {
+  final AuthRepositoryImpl _authRepository;
+  
+  User? _user;
+  bool _isLoading = false;
+  String? _error;
+
+  AuthProvider({required AuthRepositoryImpl authRepository})
+      : _authRepository = authRepository {
+    _init();
+  }
+
+  User? get user => _user;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  bool get isAuthenticated => _user != null;
+
+  void _init() {
+    // Listen to auth state changes
+    _authRepository.authStateChanges.listen((user) {
+      _user = user;
+      _error = null;
+      notifyListeners();
+    });
+  }
+
+  Future<void> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _user = await _authRepository.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+      _error = e.toString();
+      _user = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signUpWithEmailAndPassword(String email, String password) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _user = await _authRepository.signUpWithEmailAndPassword(email, password);
+    } catch (e) {
+      _error = e.toString();
+      _user = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _user = await _authRepository.signInWithGoogle();
+    } catch (e) {
+      _error = e.toString();
+      _user = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _authRepository.signOut();
+      _user = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      await _authRepository.sendPasswordResetEmail(email);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+}
+
+// lib/main.dart - Provider setup
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'features/authentication/presentation/providers/auth_provider.dart';
+import 'features/authentication/data/repositories/auth_repository_impl.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            authRepository: AuthRepositoryImpl(),
+          ),
+        ),
+        // Add more providers here
+      ],
+      child: MaterialApp(
+        title: 'Firebase App',
+        home: const HomeScreen(),
+      ),
+    );
+  }
+}
+
+// Usage in widget
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    if (authProvider.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (authProvider.isAuthenticated) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Home')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Welcome, ${authProvider.user?.email}'),
+              ElevatedButton(
+                onPressed: () => authProvider.signOut(),
+                child: const Text('Sign Out'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return const LoginScreen();
+  }
+}
+```
+
 ## 🎯 Mejores Prácticas
 
 ### 1. Security Rules (Firestore)
@@ -829,6 +1355,122 @@ try {
 }
 ```
 
+### 4. Firebase Storage Security Rules
+
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // User uploads - only authenticated users can upload
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Public images
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Private files
+    match /private/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+### 5. Remote Config Best Practices
+
+```dart
+// Configurar valores por defecto locales
+await _remoteConfig.setDefaults({
+  'feature_enabled': false,
+  'max_items': 20,
+  'api_endpoint': 'https://api.example.com',
+});
+
+// Fetch en intervalos apropiados
+// - Development: 0 segundos (fetch inmediato)
+// - Production: 1 hora (fetch cada hora)
+await _remoteConfig.setConfigSettings(
+  RemoteConfigSettings(
+    fetchTimeout: const Duration(seconds: 10),
+    minimumFetchInterval: kDebugMode 
+      ? const Duration(seconds: 0) 
+      : const Duration(hours: 1),
+  ),
+);
+
+// Siempre activar después de fetch
+final fetched = await _remoteConfig.fetchAndActivate();
+if (fetched) {
+  print('Remote config updated');
+}
+```
+
+### 6. Analytics Best Practices
+
+```dart
+// 1. Configurar user ID después del login
+await analytics.setUserId(userId);
+
+// 2. Configurar user properties (máximo 25)
+await analytics.setUserProperties({
+  'user_type': 'premium',
+  'subscription_status': 'active',
+  'sign_up_method': 'google',
+});
+
+// 3. Usar nombres consistentes para screens
+await analytics.logScreenView(screenName: 'product_detail');
+
+// 4. Usar eventos predefinidos cuando sea posible
+await analytics.logLogin(method: 'google');
+await analytics.logSignUp(method: 'email');
+
+// 5. Limpiar user ID en logout
+await analytics.clearUserId();
+```
+
+### 7. Provider State Management Best Practices
+
+```dart
+// 1. Usar ChangeNotifierProvider para estado local
+ChangeNotifierProvider(
+  create: (_) => AuthProvider(authRepository: AuthRepositoryImpl()),
+)
+
+// 2. Usar Consumer para rebuilds selectivos
+Consumer<AuthProvider>(
+  builder: (context, authProvider, child) {
+    if (authProvider.isLoading) {
+      return const CircularProgressIndicator();
+    }
+    return Text('Welcome, ${authProvider.user?.email}');
+  },
+)
+
+// 3. Usar Selector para optimizar rebuilds
+Selector<AuthProvider, bool>(
+  selector: (_, provider) => provider.isAuthenticated,
+  builder: (context, isAuthenticated, child) {
+    return isAuthenticated ? const HomeScreen() : const LoginScreen();
+  },
+)
+
+// 4. Separar providers por feature
+MultiProvider(
+  providers: [
+    ChangeNotifierProvider(create: (_) => AuthProvider(...)),
+    ChangeNotifierProvider(create: (_) => ProductProvider(...)),
+    ChangeNotifierProvider(create: (_) => CartProvider(...)),
+  ],
+  child: MyApp(),
+)
+```
+
 ## 📚 Recursos Adicionales
 
 - [FlutterFire Documentation](https://firebase.flutter.dev/)
@@ -842,6 +1484,16 @@ try {
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 2.0.0  
 **Última actualización:** Diciembre 2025
+
+## 📝 Changelog
+
+### v2.0.0 (Diciembre 2025)
+- ✅ Agregada sección completa de Firebase Storage con upload, download y gestión de archivos
+- ✅ Agregada implementación detallada de Remote Config con valores por defecto y fetch
+- ✅ Agregada integración con Provider para state management
+- ✅ Mejorada sección de Analytics con ejemplos de screen tracking, custom events, user ID y user properties
+- ✅ Agregadas mejores prácticas para Storage, Remote Config, Analytics y Provider
+- ✅ Actualizada estructura del proyecto para incluir nuevos servicios
 
