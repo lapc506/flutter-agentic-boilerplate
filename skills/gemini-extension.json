@@ -1,0 +1,29 @@
+{
+  "name": "flutter-agent-skills",
+  "version": "1.0.0",
+  "description": "Flutter Agent Skills - Comprehensive collection of Flutter development skills for Flutter, CI/CD, SRE, and design integration",
+  "author": "Flutter Agent Skills Team",
+  "repository": "https://github.com/your-org/flutter-agent-skills",
+  "keywords": [
+    "flutter",
+    "dart",
+    "mobile-development",
+    "cicd",
+    "terraform",
+    "kubernetes",
+    "sre",
+    "observability",
+    "figma"
+  ],
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": ["mcp-server", "--force-roots-fallback"]
+    },
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "@figma/mcp-server-figma"]
+    }
+  }
+}
+

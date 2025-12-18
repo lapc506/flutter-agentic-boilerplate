@@ -27,6 +27,13 @@ migrate_working_dir/
 .idx/
 .claude/
 
+# Symlinks de skills para diferentes herramientas
+# Estos se crean localmente con scripts/create-symlinks.*
+.cursor/rules/skills
+.kilocode/rules/skills
+.claude/skills/
+codex/
+
 # Environment variables (nunca commitear tokens)
 .env
 .env.local
@@ -41,6 +48,79 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+
+# Binarios y archivos generados en mobile/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub/
+mobile/build/
+mobile/**/*.iml
+mobile/**/*.ipr
+mobile/**/*.iws
+mobile/.idea/
+mobile/.vscode/
+mobile/*.lock
+mobile/pubspec.lock
+
+# Android build artifacts
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/**/build/
+mobile/android/app/debug/
+mobile/android/app/profile/
+mobile/android/app/release/
+mobile/android/.idea/
+mobile/android/*.iml
+
+# iOS build artifacts
+mobile/ios/**/*.mode1v3
+mobile/ios/**/*.mode2v3
+mobile/ios/**/*.moved-aside
+mobile/ios/**/*.pbxuser
+mobile/ios/**/*.perspectivev3
+mobile/ios/**/*sync/
+mobile/ios/**/.sconsign.dblite
+mobile/ios/**/.tags*
+mobile/ios/**/.vagrant/
+mobile/ios/**/DerivedData/
+mobile/ios/**/Icon?
+mobile/ios/**/Pods/
+mobile/ios/**/.symlinks/
+mobile/ios/**/profile
+mobile/ios/**/xcuserdata/
+mobile/ios/.generated/
+mobile/ios/Flutter/.last_build_id
+mobile/ios/Flutter/App.framework
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/ephemeral/
+mobile/ios/Flutter/app.flx
+mobile/ios/Flutter/app.zip
+mobile/ios/Flutter/flutter_assets/
+mobile/ios/Flutter/flutter_export_environment.sh
+mobile/ios/ServiceDefinitions.json
+mobile/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS build artifacts
+mobile/macos/Flutter/ephemeral/
+mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+mobile/macos/Flutter/Flutter-Debug.xcconfig
+mobile/macos/Flutter/Flutter-Release.xcconfig
+
+# Windows build artifacts
+mobile/windows/flutter/generated_plugin_registrant.*
+
+# Linux build artifacts
+mobile/linux/flutter/generated_plugin_registrant.*
+
+# Web build artifacts
+mobile/web/**/*.dart.js
+mobile/web/**/*.js_
+mobile/web/**/*.js.deps
+mobile/web/**/*.js.map
 
 # Symbolication related
 app.*.symbols
