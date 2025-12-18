@@ -73,6 +73,12 @@ Learn & Improve
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Chaos Monkey:** [`scripts/chaos_monkey.py`](scripts/chaos_monkey.py) - Chaos Monkey para Kubernetes
+> - **Experiments:** [`scripts/experiments.py`](scripts/experiments.py) - Framework para chaos experiments
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. Litmus Chaos Experiments
 
 ```yaml
@@ -142,157 +148,59 @@ spec:
 
 ### 2. Chaos Monkey Implementation
 
-```python
-# chaos/chaos_monkey.py
-import random
-import kubernetes
-from typing import List, Dict
-from datetime import datetime, timedelta
+**Script ejecutable:** [`scripts/chaos_monkey.py`](scripts/chaos_monkey.py)
 
-class ChaosMonkey:
-    def __init__(self, enabled: bool = True, probability: float = 0.1):
-        self.enabled = enabled
-        self.probability = probability  # 10% chance of chaos
-        kubernetes.config.load_incluster_config()
-        self.core_v1 = kubernetes.client.CoreV1Api()
-        self.apps_v1 = kubernetes.client.AppsV1Api()
+Chaos Monkey para Kubernetes que elimina aleatoriamente pods y recursos para probar resiliencia.
 
-    def run_experiment(self, experiment_type: str):
-        """Run a chaos experiment."""
-        if not self.enabled:
-            return
+**Cuándo ejecutar:**
+- Testing de resiliencia en producción
+- Validación de failover
+- Identificación de puntos débiles
 
-        if random.random() > self.probability:
-            return  # Skip this run
+**Uso:**
+```bash
+# Ejecutar experimento (pod-delete)
+python scripts/chaos_monkey.py run --experiment-type pod-delete
 
-        if experiment_type == 'pod-delete':
-            self._delete_random_pod()
-        elif experiment_type == 'node-drain':
-            self._drain_random_node()
-        elif experiment_type == 'cpu-stress':
-            self._stress_cpu()
-        elif experiment_type == 'memory-stress':
-            self._stress_memory()
-        elif experiment_type == 'network-partition':
-            self._partition_network()
+# Habilitar/deshabilitar
+python scripts/chaos_monkey.py enable
+python scripts/chaos_monkey.py disable
 
-    def _delete_random_pod(self):
-        """Delete a random pod from a deployment."""
-        deployments = self.apps_v1.list_deployment_for_all_namespaces()
-        
-        # Filter to deployments with chaos annotation
-        chaos_deployments = [
-            d for d in deployments.items
-            if d.metadata.annotations.get('chaos.enabled') == 'true'
-        ]
-        
-        if not chaos_deployments:
-            return
-
-        deployment = random.choice(chaos_deployments)
-        pods = self.core_v1.list_namespaced_pod(
-            deployment.metadata.namespace,
-            label_selector=f"app={deployment.metadata.labels.get('app')}"
-        )
-
-        if pods.items:
-            pod = random.choice(pods.items)
-            print(f"Chaos Monkey: Deleting pod {pod.metadata.name}")
-            self.core_v1.delete_namespaced_pod(
-                pod.metadata.name,
-                pod.metadata.namespace
-            )
-
-    def _stress_cpu(self):
-        """Stress CPU on random pod."""
-        # Implementation for CPU stress
-        pass
-
-    def _stress_memory(self):
-        """Stress memory on random pod."""
-        # Implementation for memory stress
-        pass
-
-    def _partition_network(self):
-        """Create network partition."""
-        # Implementation for network partition
-        pass
+# Configurar probabilidad
+python scripts/chaos_monkey.py set-probability --probability 0.1
 ```
+
+**Características:**
+- ✅ Eliminación aleatoria de pods
+- ✅ Probabilidad configurable
+- ✅ Filtrado por annotations (`chaos.enabled=true`)
+- ✅ Múltiples tipos de experimentos
 
 ### 3. Chaos Experiments
 
-```python
-# chaos/experiments.py
-from dataclasses import dataclass
-from typing import Callable, Dict
-from datetime import datetime
+**Script ejecutable:** [`scripts/experiments.py`](scripts/experiments.py)
 
-@dataclass
-class ChaosExperiment:
-    name: str
-    description: str
-    hypothesis: str
-    experiment_fn: Callable
-    duration_seconds: int
-    expected_behavior: str
+Framework para ejecutar y gestionar chaos experiments con hipótesis y resultados.
 
-class ExperimentRunner:
-    def __init__(self):
-        self.experiments = []
+**Cuándo ejecutar:**
+- Ejecución de experiments estructurados
+- Gestión de múltiples experiments
+- Registro de nuevos experiments
 
-    def register_experiment(self, experiment: ChaosExperiment):
-        self.experiments.append(experiment)
+**Uso:**
+```bash
+# Ejecutar experimento
+python scripts/experiments.py run --name pod-delete
 
-    def run_experiment(self, experiment_name: str) -> Dict:
-        """Run a specific experiment."""
-        experiment = next(
-            (e for e in self.experiments if e.name == experiment_name),
-            None
-        )
-        
-        if not experiment:
-            raise ValueError(f"Experiment {experiment_name} not found")
-
-        print(f"Running experiment: {experiment.name}")
-        print(f"Hypothesis: {experiment.hypothesis}")
-
-        start_time = datetime.now()
-        
-        try:
-            # Run experiment
-            result = experiment.experiment_fn()
-            
-            end_time = datetime.now()
-            duration = (end_time - start_time).total_seconds()
-
-            return {
-                'experiment': experiment.name,
-                'status': 'success',
-                'duration': duration,
-                'result': result,
-            }
-        except Exception as e:
-            return {
-                'experiment': experiment.name,
-                'status': 'failed',
-                'error': str(e),
-            }
-
-# Example experiment
-def pod_delete_experiment():
-    """Experiment: Delete random pod, system should recover."""
-    # Implementation
-    return {'pods_deleted': 1, 'recovery_time': 30}
-
-experiment = ChaosExperiment(
-    name='pod-delete',
-    description='Delete random pod from deployment',
-    hypothesis='System should recover within 60 seconds',
-    experiment_fn=pod_delete_experiment,
-    duration_seconds=60,
-    expected_behavior='Service remains available'
-)
+# Listar experimentos
+python scripts/experiments.py list
 ```
+
+**Características:**
+- ✅ Framework de experiments estructurado
+- ✅ Hipótesis y expected behavior
+- ✅ Tracking de resultados
+- ✅ Registro de experiments
 
 ### 4. Automated Chaos Testing
 

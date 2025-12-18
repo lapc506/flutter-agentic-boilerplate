@@ -1,0 +1,19 @@
+# Cost Optimization & FinOps Scripts Dependencies
+
+# AWS Cost Tracker
+boto3>=1.28.0
+
+# Budget Alert Manager
+boto3>=1.28.0
+
+# Resource Optimizer
+boto3>=1.28.0
+
+# Auto Optimizer
+# Depends on resource_optimizer.py (no additional dependencies)
+
+# Note: Requires AWS credentials configured:
+# - AWS CLI configured with credentials
+# - Or environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+# - Or IAM role (if running on EC2)
+

@@ -73,6 +73,12 @@ Orchestration Security
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Image Signing:** [`scripts/sign-image.sh`](scripts/sign-image.sh) - Firmar imágenes con Notary (Bash)
+> - **Admission Controller:** [`scripts/admission_controller.py`](scripts/admission_controller.py) - Validación de seguridad de pods (Python CLI)
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. Image Scanning
 
 ```yaml
@@ -259,24 +265,32 @@ spec:
 
 ### 4. Image Signing
 
+**Script ejecutable:** [`scripts/sign-image.sh`](scripts/sign-image.sh)
+
+Script para firmar imágenes de contenedores con Notary.
+
+**Cuándo ejecutar:**
+- Firmar imágenes antes de deployment
+- CI/CD pipelines
+- Verificación de integridad de imágenes
+
+**Uso:**
 ```bash
-#!/bin/bash
-# security/sign-image.sh
+chmod +x scripts/sign-image.sh
 
-IMAGE="gcr.io/my-project/my-app:latest"
-NOTARY_SERVER="https://notary-server:4443"
+# Firmar imagen
+./scripts/sign-image.sh --image gcr.io/my-project/my-app:latest
 
-# Sign image with Notary
-docker pull $IMAGE
-docker push $IMAGE
-
-# Sign with Notary
-notary -s $NOTARY_SERVER \
-  -d ~/.docker/trust \
-  add \
-  $IMAGE \
-  $(docker inspect --format='{{.Id}}' $IMAGE | cut -d':' -f2)
+# Con servidor Notary personalizado
+./scripts/sign-image.sh \
+  --image my-image:latest \
+  --notary-server https://notary-server:4443
 ```
+
+**Características:**
+- ✅ Pull y push automático
+- ✅ Firma con Notary
+- ✅ Extracción automática de digest
 
 ### 5. Security Policies
 
@@ -312,52 +326,30 @@ spec:
 
 ### 6. Admission Controller
 
-```python
-# security/admission_controller.py
-from kubernetes import client, config
-from kubernetes.client.rest import ApiException
-import base64
+**Script ejecutable:** [`scripts/admission_controller.py`](scripts/admission_controller.py)
 
-class SecurityAdmissionController:
-    def __init__(self):
-        config.load_incluster_config()
-        self.admission_api = client.AdmissionregistrationV1Api()
+Validador de seguridad para pods en Kubernetes admission webhook.
 
-    def validate_pod(self, pod_spec: dict) -> dict:
-        """Validate pod security requirements."""
-        violations = []
+**Cuándo ejecutar:**
+- Validación de pods antes de creación
+- CI/CD pipelines
+- Verificación de compliance de seguridad
 
-        # Check for privileged containers
-        for container in pod_spec.get('containers', []):
-            security_context = container.get('securityContext', {})
-            if security_context.get('privileged'):
-                violations.append({
-                    'container': container['name'],
-                    'violation': 'Privileged containers not allowed',
-                })
+**Uso:**
+```bash
+# Validar pod spec
+python scripts/admission_controller.py validate --pod-spec pod.json
 
-        # Check for root user
-        for container in pod_spec.get('containers', []):
-            security_context = container.get('securityContext', {})
-            if security_context.get('runAsUser') == 0:
-                violations.append({
-                    'container': container['name'],
-                    'violation': 'Containers must not run as root',
-                })
-
-        # Check for resource limits
-        for container in pod_spec.get('containers', []):
-            if not container.get('resources', {}).get('limits'):
-                violations.append({
-                    'container': container['name'],
-                    'violation': 'Resource limits required',
-                })
-
-        return {
-            'allowed': len(violations) == 0,
-            'violations': violations,
-        }
+# Validar deployment spec
+python scripts/admission_controller.py validate --deployment-spec deployment.json
 ```
+
+**Características:**
+- ✅ Validación de privileged containers
+- ✅ Validación de root user
+- ✅ Validación de resource limits
+- ✅ Validación de security contexts
+- ✅ Warnings y errors separados
 
 ## 🎯 Mejores Prácticas
 

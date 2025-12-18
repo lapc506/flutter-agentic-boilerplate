@@ -1,0 +1,21 @@
+{
+  "name": "structured-logger",
+  "version": "1.0.0",
+  "description": "Structured logging for Node.js with Winston",
+  "main": "structured-logger.js",
+  "scripts": {
+    "test": "node structured-logger.js"
+  },
+  "dependencies": {
+    "winston": "^3.11.0"
+  },
+  "keywords": [
+    "logging",
+    "structured-logs",
+    "winston",
+    "json-logs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

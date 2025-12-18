@@ -96,119 +96,85 @@ Logging efectivo y agregación centralizada son fundamentales para debugging, mo
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Node.js Logger:** [`scripts/nodejs/structured-logger.js`](scripts/nodejs/structured-logger.js) - Structured logging con Winston
+> - **Python Logger:** [`scripts/python/structured_logger.py`](scripts/python/structured_logger.py) - Structured logging con JSON
+> - **Log Archiver:** [`scripts/python/log_archiver.py`](scripts/python/log_archiver.py) - Archivado y retención de logs con S3
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. Structured Logging
 
-#### 1.1 JSON Log Format
+#### 1.1 JSON Log Format (Node.js)
 
-```javascript
-// logging/structured-logger.js
-const winston = require('winston');
+**Script ejecutable:** [`scripts/nodejs/structured-logger.js`](scripts/nodejs/structured-logger.js)
 
-const logger = winston.createLogger({
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: {
-    service: 'user-service',
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.APP_VERSION || '1.0.0',
-  },
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.json(),
-    }),
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    }),
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    }),
-  ],
-});
+Structured logger para Node.js usando Winston con formato JSON para centralized logging.
 
-// Usage with context
-logger.info('User created', {
-  userId: '12345',
-  email: 'user@example.com',
-  traceId: req.headers['x-trace-id'],
-  spanId: req.headers['x-span-id'],
-  httpMethod: req.method,
-  httpPath: req.path,
-  httpStatus: 201,
-  durationMs: 45,
-});
+**Cuándo ejecutar:**
+- Integración en aplicaciones Node.js
+- Logging estructurado para sistemas distribuidos
+- Integración con Loki/Elasticsearch
 
-logger.error('Database connection failed', {
-  error: error.message,
-  stack: error.stack,
-  database: 'users-db',
-  retryAttempt: 3,
-  traceId: req.headers['x-trace-id'],
-});
+**Uso:**
+```bash
+cd scripts/nodejs
+npm install
+
+# Test
+node structured-logger.js
+
+# En tu aplicación
+const { logger } = require('./structured-logger');
+logger.info('User created', { userId: '123', email: 'user@example.com' });
 ```
+
+**Características:**
+- ✅ Formato JSON estructurado
+- ✅ Timestamps automáticos
+- ✅ Context injection (service, environment, version)
+- ✅ File handlers (error.log, combined.log)
+- ✅ Exception y rejection handlers
+- ✅ Convenience functions para eventos comunes
 
 #### 1.2 Python Structured Logging
 
-```python
-# logging/structured_logger.py
-import logging
-import json
-from datetime import datetime
-from typing import Dict, Any, Optional
+**Script ejecutable:** [`scripts/python/structured_logger.py`](scripts/python/structured_logger.py)
 
-class StructuredFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        log_data = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'level': record.levelname,
-            'message': record.getMessage(),
-            'module': record.module,
-            'function': record.funcName,
-            'line': record.lineno,
-        }
-        
-        # Add extra fields
-        if hasattr(record, 'user_id'):
-            log_data['user_id'] = record.user_id
-        if hasattr(record, 'trace_id'):
-            log_data['trace_id'] = record.trace_id
-        if hasattr(record, 'span_id'):
-            log_data['span_id'] = record.span_id
-        if hasattr(record, 'http_method'):
-            log_data['http_method'] = record.http_method
-        if hasattr(record, 'http_path'):
-            log_data['http_path'] = record.http_path
-        if hasattr(record, 'http_status'):
-            log_data['http_status'] = record.http_status
-        if hasattr(record, 'duration_ms'):
-            log_data['duration_ms'] = record.duration_ms
-            
-        # Add exception info
-        if record.exc_info:
-            log_data['exception'] = self.formatException(record.exc_info)
-            
-        return json.dumps(log_data)
+Structured logger para Python con formato JSON y soporte para context injection.
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+**Cuándo ejecutar:**
+- Integración en aplicaciones Python
+- Logging estructurado para sistemas distribuidos
+- Integración con Loki/Elasticsearch
 
-handler = logging.StreamHandler()
-handler.setFormatter(StructuredFormatter())
-logger.addHandler(handler)
+**Uso:**
+```bash
+cd scripts/python
 
-# Usage
+# Test
+python structured_logger.py
+
+# En tu aplicación
+from structured_logger import get_logger
+
+logger = get_logger(service='my-service')
 logger.info('User created', extra={
     'user_id': '12345',
-    'trace_id': request.headers.get('X-Trace-Id'),
-    'http_method': request.method,
-    'http_path': request.path,
+    'trace_id': 'abc-123',
+    'http_method': 'POST',
+    'http_path': '/api/users',
     'http_status': 201,
     'duration_ms': 45,
 })
 ```
+
+**Características:**
+- ✅ Formato JSON estructurado
+- ✅ Timestamps automáticos
+- ✅ Context injection (service, environment, version)
+- ✅ File handlers (error.log, combined.log)
+- ✅ Convenience functions para eventos comunes
 
 ### 2. Loki Configuration
 
@@ -483,73 +449,47 @@ sum by (service) (rate({job="application"} | json [5m]))
 
 ### 6. Log Retention & Archival
 
-```python
-# log_archival/archiver.py
-import boto3
-import gzip
-from datetime import datetime, timedelta
-from pathlib import Path
+**Script ejecutable:** [`scripts/python/log_archiver.py`](scripts/python/log_archiver.py)
 
-class LogArchiver:
-    def __init__(self, s3_bucket: str, retention_days: int = 30):
-        self.s3_bucket = s3_bucket
-        self.retention_days = retention_days
-        self.s3_client = boto3.client('s3')
+Herramienta CLI para archivado y gestión de retención de logs con almacenamiento en S3.
 
-    def archive_logs(self, log_directory: str):
-        """Archive logs older than retention period."""
-        log_path = Path(log_directory)
-        cutoff_date = datetime.now() - timedelta(days=self.retention_days)
+**Cuándo ejecutar:**
+- Archivado automático de logs antiguos
+- Gestión de retención de logs
+- Restauración de logs archivados
 
-        for log_file in log_path.glob('*.log'):
-            if log_file.stat().st_mtime < cutoff_date.timestamp():
-                self._compress_and_upload(log_file)
+**Uso:**
+```bash
+cd scripts/python
+pip install -r requirements.txt
 
-    def _compress_and_upload(self, log_file: Path):
-        """Compress log file and upload to S3."""
-        # Compress
-        compressed_file = log_file.with_suffix('.log.gz')
-        with open(log_file, 'rb') as f_in:
-            with gzip.open(compressed_file, 'wb') as f_out:
-                f_out.writelines(f_in)
+# Archivar logs antiguos
+python log_archiver.py archive \
+  --s3-bucket my-logs-bucket \
+  --log-dir /var/log/app \
+  --retention-days 30
 
-        # Upload to S3
-        s3_key = f"logs/{log_file.stem}/{log_file.name}.gz"
-        self.s3_client.upload_file(
-            str(compressed_file),
-            self.s3_bucket,
-            s3_key
-        )
+# Dry run (ver qué se archivaría)
+python log_archiver.py archive \
+  --s3-bucket my-logs-bucket \
+  --log-dir /var/log/app \
+  --retention-days 30 \
+  --dry-run
 
-        # Delete local files
-        log_file.unlink()
-        compressed_file.unlink()
-
-    def restore_logs(self, date: datetime, s3_prefix: str):
-        """Restore archived logs from S3."""
-        date_prefix = date.strftime('%Y-%m-%d')
-        
-        objects = self.s3_client.list_objects_v2(
-            Bucket=self.s3_bucket,
-            Prefix=f"{s3_prefix}/{date_prefix}/"
-        )
-
-        for obj in objects.get('Contents', []):
-            # Download and decompress
-            local_file = Path(f"/tmp/restored/{obj['Key']}")
-            local_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            self.s3_client.download_file(
-                self.s3_bucket,
-                obj['Key'],
-                str(local_file)
-            )
-            
-            # Decompress
-            with gzip.open(local_file, 'rb') as f_in:
-                with open(local_file.with_suffix(''), 'wb') as f_out:
-                    f_out.write(f_in.read())
+# Restaurar logs archivados
+python log_archiver.py restore \
+  --s3-bucket my-logs-bucket \
+  --date 2024-01-15 \
+  --s3-prefix logs \
+  --output-dir /tmp/restored
 ```
+
+**Características:**
+- ✅ Compresión automática (gzip)
+- ✅ Upload a S3
+- ✅ Restauración de logs archivados
+- ✅ Dry-run mode
+- ✅ Retención configurable
 
 ## 🎯 Mejores Prácticas
 

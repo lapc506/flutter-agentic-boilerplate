@@ -11,6 +11,7 @@ skills/
 │   ├── clean-architecture/
 │   ├── project-setup/
 │   ├── testing/
+│   ├── mobile-testing/
 │   ├── riverpod/
 │   ├── bloc-advanced/
 │   ├── modular-architecture/
@@ -44,20 +45,21 @@ skills/
 | 2 | **Clean Architecture** | 🔴 Avanzado | [`flutter/clean-architecture/`](./flutter/clean-architecture/) | `clean`, `clean-arch`, `bloc`, `usecase` |
 | 3 | **Project Setup** | 🟢 Básico | [`flutter/project-setup/`](./flutter/project-setup/) | `setup`, `init`, `scaffold` |
 | 4 | **Testing Strategy** | 🔴 Avanzado | [`flutter/testing/`](./flutter/testing/) | `testing`, `test`, `unit-test`, `widget-test` |
-| 5 | **Code Generation** | 🟢 Básico | [`flutter/code-generation/`](./flutter/code-generation/) | `code-gen`, `build-runner`, `freezed`, `json-serializable`, `injectable` |
-| 6 | **Security** | 🔴 Avanzado | [`flutter/security/`](./flutter/security/) | `security`, `obfuscation`, `certificate-pinning`, `encryption`, `biometric` |
-| 7 | **Platform Channels** | 🔴 Avanzado | [`flutter/platform-channels/`](./flutter/platform-channels/) | `platform-channels`, `methodchannel`, `eventchannel`, `ffi`, `native` |
-| 8 | **Native Integration** | 🔴 Avanzado | [`flutter/native-integration/`](./flutter/native-integration/) | `native-integration`, `swift`, `kotlin`, `uikit`, `native-ui` |
-| 9 | **App Distribution** | 🟡 Intermedio | [`flutter/app-distribution/`](./flutter/app-distribution/) | `app-distribution`, `testflight`, `play-console`, `fastlane` |
-| 10 | **Error Tracking** | 🟡 Intermedio | [`flutter/error-tracking/`](./flutter/error-tracking/) | `error-tracking`, `sentry`, `crashlytics`, `monitoring` |
-| 11 | **Analytics & Tracking** | 🟡 Intermedio | [`flutter/analytics-tracking/`](./flutter/analytics-tracking/) | `analytics`, `mixpanel`, `amplitude`, `firebase-analytics` |
-| 12 | **Deep Linking** | 🟡 Intermedio | [`flutter/deep-linking/`](./flutter/deep-linking/) | `deep-linking`, `universal-links`, `app-links`, `go-router` |
-| 13 | **Push Notifications** | 🟡 Intermedio | [`flutter/push-notifications/`](./flutter/push-notifications/) | `push-notifications`, `fcm`, `firebase-messaging`, `local-notifications` |
-| 14 | **Animation & Motion** | 🔴 Avanzado | [`flutter/animation-motion/`](./flutter/animation-motion/) | `animation`, `motion`, `rive`, `lottie`, `hero`, `tween` |
-| 15 | **Accessibility** | 🟡 Intermedio | [`flutter/accessibility/`](./flutter/accessibility/) | `accessibility`, `a11y`, `semantic`, `screen-reader`, `wcag` |
-| 16 | **Feature Flags** | 🟡 Intermedio | [`flutter/feature-flags/`](./flutter/feature-flags/) | `feature-flags`, `remote-config`, `firebase-remote-config`, `ab-testing` |
-| 17 | **In-App Purchases** | 🔴 Avanzado | [`flutter/in-app-purchases/`](./flutter/in-app-purchases/) | `in-app-purchases`, `iap`, `subscriptions`, `revenue-cat` |
-| 18 | **WebView Integration** | 🟡 Intermedio | [`flutter/webview-integration/`](./flutter/webview-integration/) | `webview`, `flutter-inappwebview`, `javascript`, `hybrid` |
+| 5 | **Mobile Testing** | 🔴 Avanzado | [`flutter/mobile-testing/`](./flutter/mobile-testing/) | `mobile-testing`, `integration-test-mobile`, `mobile-mcp`, `mobile-automation`, `ui-testing-mobile` |
+| 6 | **Code Generation** | 🟢 Básico | [`flutter/code-generation/`](./flutter/code-generation/) | `code-gen`, `build-runner`, `freezed`, `json-serializable`, `injectable` |
+| 7 | **Security** | 🔴 Avanzado | [`flutter/security/`](./flutter/security/) | `security`, `obfuscation`, `certificate-pinning`, `encryption`, `biometric` |
+| 8 | **Platform Channels** | 🔴 Avanzado | [`flutter/platform-channels/`](./flutter/platform-channels/) | `platform-channels`, `methodchannel`, `eventchannel`, `ffi`, `native` |
+| 9 | **Native Integration** | 🔴 Avanzado | [`flutter/native-integration/`](./flutter/native-integration/) | `native-integration`, `swift`, `kotlin`, `uikit`, `native-ui` |
+| 10 | **App Distribution** | 🟡 Intermedio | [`flutter/app-distribution/`](./flutter/app-distribution/) | `app-distribution`, `testflight`, `play-console`, `fastlane` |
+| 11 | **Error Tracking** | 🟡 Intermedio | [`flutter/error-tracking/`](./flutter/error-tracking/) | `error-tracking`, `sentry`, `crashlytics`, `monitoring` |
+| 12 | **Analytics & Tracking** | 🟡 Intermedio | [`flutter/analytics-tracking/`](./flutter/analytics-tracking/) | `analytics`, `mixpanel`, `amplitude`, `firebase-analytics` |
+| 13 | **Deep Linking** | 🟡 Intermedio | [`flutter/deep-linking/`](./flutter/deep-linking/) | `deep-linking`, `universal-links`, `app-links`, `go-router` |
+| 14 | **Push Notifications** | 🟡 Intermedio | [`flutter/push-notifications/`](./flutter/push-notifications/) | `push-notifications`, `fcm`, `firebase-messaging`, `local-notifications` |
+| 15 | **Animation & Motion** | 🔴 Avanzado | [`flutter/animation-motion/`](./flutter/animation-motion/) | `animation`, `motion`, `rive`, `lottie`, `hero`, `tween` |
+| 16 | **Accessibility** | 🟡 Intermedio | [`flutter/accessibility/`](./flutter/accessibility/) | `accessibility`, `a11y`, `semantic`, `screen-reader`, `wcag` |
+| 17 | **Feature Flags** | 🟡 Intermedio | [`flutter/feature-flags/`](./flutter/feature-flags/) | `feature-flags`, `remote-config`, `firebase-remote-config`, `ab-testing` |
+| 18 | **In-App Purchases** | 🔴 Avanzado | [`flutter/in-app-purchases/`](./flutter/in-app-purchases/) | `in-app-purchases`, `iap`, `subscriptions`, `revenue-cat` |
+| 19 | **WebView Integration** | 🟡 Intermedio | [`flutter/webview-integration/`](./flutter/webview-integration/) | `webview`, `flutter-inappwebview`, `javascript`, `hybrid` |
 
 ### 🚀 CI/CD & Infrastructure Skills
 

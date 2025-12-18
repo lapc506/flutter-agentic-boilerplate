@@ -1,0 +1,24 @@
+{
+  "name": "load-testing-nodejs-profiling",
+  "version": "1.0.0",
+  "description": "Node.js performance and memory profiling tools for load testing",
+  "main": "index.js",
+  "scripts": {
+    "profile": "node performance-profiler.js",
+    "memory": "node memory-profiler.js --monitor",
+    "snapshot": "node memory-profiler.js --snapshot"
+  },
+  "dependencies": {
+    "v8-profiler-node8": "^6.0.1",
+    "heapdump": "^0.3.15"
+  },
+  "keywords": [
+    "profiling",
+    "performance",
+    "memory",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

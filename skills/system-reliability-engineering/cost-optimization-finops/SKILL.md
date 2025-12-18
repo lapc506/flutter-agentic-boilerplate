@@ -70,224 +70,141 @@ Operate
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts Python ejecutables en la carpeta [`scripts/`](scripts/):
+> - [`aws_cost_tracker.py`](scripts/aws_cost_tracker.py) - Tracking y análisis de costos AWS
+> - [`budget_alert.py`](scripts/budget_alert.py) - Gestión de budgets y alertas
+> - [`resource_optimizer.py`](scripts/resource_optimizer.py) - Análisis de recursos y optimización
+> - [`auto_optimizer.py`](scripts/auto_optimizer.py) - Optimizador automático completo
+> - [`requirements.txt`](scripts/requirements.txt) - Dependencias Python (boto3)
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso.
+
 ### 1. Cost Monitoring
 
-```python
-# cost_monitoring/aws_cost_tracker.py
-import boto3
-from datetime import datetime, timedelta
-from typing import Dict, List
+**Script ejecutable:** [`scripts/aws_cost_tracker.py`](scripts/aws_cost_tracker.py)
 
-class AWSCostTracker:
-    def __init__(self):
-        self.ce_client = boto3.client('ce')  # Cost Explorer
+Script CLI completo para tracking y análisis de costos AWS usando Cost Explorer API.
 
-    def get_daily_costs(self, days: int = 30) -> List[Dict]:
-        """Get daily costs for last N days."""
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+#### Cuándo ejecutar
 
-        response = self.ce_client.get_cost_and_usage(
-            TimePeriod={
-                'Start': start_date.strftime('%Y-%m-%d'),
-                'End': end_date.strftime('%Y-%m-%d'),
-            },
-            Granularity='DAILY',
-            Metrics=['UnblendedCost'],
-            GroupBy=[
-                {'Type': 'DIMENSION', 'Key': 'SERVICE'},
-            ],
-        )
+- **Reportes regulares:** Para generar reportes de costos diarios/semanales
+- **Análisis de costos:** Para identificar servicios o tags con mayor costo
+- **Exportación de datos:** Para integrar con otros sistemas o dashboards
+- **Auditoría:** Para revisar costos históricos
 
-        return response['ResultsByTime']
+#### Uso
 
-    def get_service_costs(self, service_name: str, days: int = 30) -> float:
-        """Get total cost for a specific service."""
-        costs = self.get_daily_costs(days)
-        total = 0.0
+```bash
+# Instalar dependencias
+pip install -r scripts/requirements.txt
 
-        for day in costs:
-            for group in day.get('Groups', []):
-                if service_name in group['Keys']:
-                    total += float(group['Metrics']['UnblendedCost']['Amount'])
+# Costos diarios (últimos 30 días)
+python scripts/aws_cost_tracker.py daily --days 30
 
-        return total
+# Costos por servicio
+python scripts/aws_cost_tracker.py service EC2 --days 30
 
-    def get_cost_by_tag(self, tag_key: str, days: int = 30) -> Dict[str, float]:
-        """Get costs grouped by tag."""
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+# Costos por tag
+python scripts/aws_cost_tracker.py tag --tag-key Environment --days 30
 
-        response = self.ce_client.get_cost_and_usage(
-            TimePeriod={
-                'Start': start_date.strftime('%Y-%m-%d'),
-                'End': end_date.strftime('%Y-%m-%d'),
-            },
-            Granularity='DAILY',
-            Metrics=['UnblendedCost'],
-            GroupBy=[
-                {'Type': 'TAG', 'Key': tag_key},
-            ],
-        )
-
-        costs_by_tag = {}
-        for day in response['ResultsByTime']:
-            for group in day.get('Groups', []):
-                tag_value = group['Keys'][0] if group['Keys'] else 'untagged'
-                amount = float(group['Metrics']['UnblendedCost']['Amount'])
-                costs_by_tag[tag_value] = costs_by_tag.get(tag_value, 0) + amount
-
-        return costs_by_tag
+# Exportar a CSV
+python scripts/aws_cost_tracker.py daily --days 30 --output costs.csv
 ```
+
+#### Características
+
+- ✅ Costos diarios agrupados por servicio
+- ✅ Costos por servicio específico
+- ✅ Costos agrupados por tags
+- ✅ Exportación a CSV
+- ✅ Formato legible en consola
+- ✅ Soporte para múltiples perfiles AWS
 
 ### 2. Budget Alerts
 
-```yaml
-# aws/budgets.yml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: budget-config
-data:
-  budgets.yaml: |
-    budgets:
-      - name: monthly-infrastructure-budget
-        amount: 10000
-        currency: USD
-        period: monthly
-        alert_thresholds:
-          - percentage: 50
-            action: notify
-          - percentage: 80
-            action: notify_and_warn
-          - percentage: 100
-            action: notify_and_stop
-        
-      - name: compute-budget
-        amount: 5000
-        currency: USD
-        period: monthly
-        filters:
-          - service: EC2
-          - service: ECS
-          - service: Lambda
+**Script ejecutable:** [`scripts/budget_alert.py`](scripts/budget_alert.py)
+
+Gestor completo de budgets AWS con alertas automatizadas por email.
+
+#### Cuándo ejecutar
+
+- **Crear budgets:** Al establecer límites de gasto para servicios o proyectos
+- **Monitoreo:** Para revisar estado de budgets existentes
+- **Gestión:** Para listar, actualizar o eliminar budgets
+
+#### Uso
+
+```bash
+# Crear budget con alertas
+python scripts/budget_alert.py create \
+  --name monthly-infrastructure-budget \
+  --amount 10000 \
+  --period monthly \
+  --thresholds 50,80,100 \
+  --email ops@example.com
+
+# Listar todos los budgets
+python scripts/budget_alert.py list
+
+# Ver estado de un budget
+python scripts/budget_alert.py status --name monthly-infrastructure-budget
+
+# Eliminar budget
+python scripts/budget_alert.py delete --name monthly-infrastructure-budget
 ```
 
-```python
-# cost_monitoring/budget_alert.py
-import boto3
-from dataclasses import dataclass
-from typing import List
+#### Características
 
-@dataclass
-class Budget:
-    name: str
-    amount: float
-    period: str
-    thresholds: List[float]
+- ✅ Creación de budgets con múltiples umbrales de alerta
+- ✅ Notificaciones por email automáticas
+- ✅ Filtros por servicio (opcional)
+- ✅ Listado y estado de budgets
+- ✅ Gestión completa (crear, listar, eliminar)
 
-class BudgetAlert:
-    def __init__(self):
-        self.budgets_client = boto3.client('budgets')
+#### Ejemplo de configuración YAML
 
-    def create_budget(self, budget: Budget):
-        """Create AWS budget with alerts."""
-        self.budgets_client.create_budget(
-            AccountId=self._get_account_id(),
-            Budget={
-                'BudgetName': budget.name,
-                'BudgetLimit': {
-                    'Amount': str(budget.amount),
-                    'Unit': 'USD',
-                },
-                'TimeUnit': budget.period.upper(),
-                'BudgetType': 'COST',
-            },
-            NotificationsWithSubscribers=[
-                {
-                    'Notification': {
-                        'NotificationType': 'ACTUAL',
-                        'ComparisonOperator': 'GREATER_THAN',
-                        'Threshold': threshold,
-                    },
-                    'Subscribers': [
-                        {
-                            'SubscriptionType': 'EMAIL',
-                            'Address': 'ops@example.com',
-                        },
-                    ],
-                }
-                for threshold in budget.thresholds
-            ],
-        )
-
-    def _get_account_id(self) -> str:
-        sts = boto3.client('sts')
-        return sts.get_caller_identity()['Account']
+```yaml
+# aws/budgets.yml (para referencia)
+budgets:
+  - name: monthly-infrastructure-budget
+    amount: 10000
+    period: monthly
+    thresholds: [50, 80, 100]
+    email: ops@example.com
 ```
 
 ### 3. Resource Optimization
 
-```python
-# cost_optimization/resource_optimizer.py
-import boto3
-from typing import List, Dict
+**Script ejecutable:** [`scripts/resource_optimizer.py`](scripts/resource_optimizer.py)
 
-class ResourceOptimizer:
-    def __init__(self):
-        self.ec2_client = boto3.client('ec2')
-        self.cloudwatch = boto3.client('cloudwatch')
+Analizador de recursos AWS que identifica oportunidades de optimización de costos.
 
-    def find_idle_instances(self) -> List[Dict]:
-        """Find EC2 instances with low utilization."""
-        instances = self.ec2_client.describe_instances()['Reservations']
-        idle_instances = []
+#### Cuándo ejecutar
 
-        for reservation in instances:
-            for instance in reservation['Instances']:
-                if instance['State']['Name'] != 'running':
-                    continue
+- **Análisis regular:** Para identificar recursos subutilizados
+- **Antes de optimizar:** Para planificar cambios de recursos
+- **Auditoría de costos:** Para encontrar oportunidades de ahorro
 
-                # Check CPU utilization (last 7 days)
-                metrics = self.cloudwatch.get_metric_statistics(
-                    Namespace='AWS/EC2',
-                    MetricName='CPUUtilization',
-                    Dimensions=[
-                        {'Name': 'InstanceId', 'Value': instance['InstanceId']},
-                    ],
-                    StartTime=datetime.now() - timedelta(days=7),
-                    EndTime=datetime.now(),
-                    Period=3600,
-                    Statistics=['Average'],
-                )
+#### Uso
 
-                avg_cpu = self._calculate_average(metrics['Datapoints'])
-                
-                if avg_cpu < 10:  # Less than 10% CPU
-                    idle_instances.append({
-                        'instance_id': instance['InstanceId'],
-                        'instance_type': instance['InstanceType'],
-                        'avg_cpu': avg_cpu,
-                        'estimated_monthly_cost': self._estimate_cost(instance),
-                    })
+```bash
+# Encontrar instancias idle (CPU < 10%)
+python scripts/resource_optimizer.py idle --cpu-threshold 10
 
-        return idle_instances
+# Oportunidades de rightsizing
+python scripts/resource_optimizer.py rightsize
 
-    def find_rightsizing_opportunities(self) -> List[Dict]:
-        """Find instances that could be downsized."""
-        # Implementation for rightsizing analysis
-        pass
-
-    def _calculate_average(self, datapoints: List[Dict]) -> float:
-        if not datapoints:
-            return 0.0
-        return sum(dp['Average'] for dp in datapoints) / len(datapoints)
-
-    def _estimate_cost(self, instance: Dict) -> float:
-        # Estimate monthly cost based on instance type
-        # This is simplified - real implementation would use pricing API
-        return 100.0  # Placeholder
+# Volúmenes EBS no usados
+python scripts/resource_optimizer.py unused-volumes
 ```
+
+#### Características
+
+- ✅ Detección de instancias idle (bajo CPU)
+- ✅ Análisis de rightsizing (downsize/upsize)
+- ✅ Detección de volúmenes no usados
+- ✅ Estimación de costos y ahorros potenciales
+- ✅ Análisis multi-región (opcional)
 
 ### 4. Cost Allocation Tags
 
@@ -337,42 +254,33 @@ spec:
 
 ### 5. Automated Cost Optimization
 
-```python
-# cost_optimization/auto_optimizer.py
-class AutoCostOptimizer:
-    def __init__(self):
-        self.optimizer = ResourceOptimizer()
+**Script ejecutable:** [`scripts/auto_optimizer.py`](scripts/auto_optimizer.py)
 
-    def optimize_resources(self):
-        """Automatically optimize resources based on usage."""
-        # 1. Find idle instances
-        idle_instances = self.optimizer.find_idle_instances()
-        
-        for instance in idle_instances:
-            if instance['avg_cpu'] < 5:  # Very idle
-                self._recommend_stop(instance)
-            else:
-                self._recommend_downsize(instance)
+Optimizador automático que combina múltiples estrategias de optimización y genera reportes completos.
 
-        # 2. Find unused resources
-        unused_volumes = self._find_unused_volumes()
-        for volume in unused_volumes:
-            self._recommend_delete(volume)
+#### Cuándo ejecutar
 
-        # 3. Find reserved instance opportunities
-        ri_opportunities = self._find_ri_opportunities()
-        for opp in ri_opportunities:
-            self._recommend_reserved_instance(opp)
+- **Análisis completo:** Para obtener visión general de todas las oportunidades
+- **Reportes regulares:** Para generar reportes de optimización periódicos
+- **Planificación:** Para planificar optimizaciones de costos
 
-    def _recommend_stop(self, instance: Dict):
-        """Recommend stopping idle instance."""
-        print(f"Recommend stopping instance {instance['instance_id']}")
-        # Send notification, create ticket, etc.
+#### Uso
 
-    def _recommend_downsize(self, instance: Dict):
-        """Recommend downsizing instance."""
-        print(f"Recommend downsizing {instance['instance_id']}")
+```bash
+# Análisis completo
+python scripts/auto_optimizer.py analyze
+
+# Generar reporte detallado
+python scripts/auto_optimizer.py report --output optimization-report.json
 ```
+
+#### Características
+
+- ✅ Análisis completo combinando múltiples estrategias
+- ✅ Recomendaciones priorizadas por ahorro potencial
+- ✅ Reportes detallados en JSON
+- ✅ Estimación de ahorros totales
+- ✅ Identificación de instancias idle, rightsizing, y recursos no usados
 
 ## 🎯 Mejores Prácticas
 

@@ -84,20 +84,41 @@ Service mesh proporciona observabilidad, seguridad y confiabilidad para comunica
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts bash ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Install Istio:** [`scripts/install-istio.sh`](scripts/install-istio.sh) - Instalación automatizada de Istio
+> - **Verify Istio:** [`scripts/verify-istio.sh`](scripts/verify-istio.sh) - Verificación de instalación
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. Istio Installation
 
+**Script ejecutable:** [`scripts/install-istio.sh`](scripts/install-istio.sh)
+
+Script de instalación automatizada de Istio service mesh.
+
+**Cuándo ejecutar:**
+- Instalación inicial de Istio
+- Setup de service mesh en nuevos clusters
+- Actualización de Istio
+
+**Uso:**
 ```bash
-# Install Istio
-curl -L https://istio.io/downloadIstio | sh -
-cd istio-*
-export PATH=$PWD/bin:$PATH
+# Instalar con perfil demo (default)
+chmod +x scripts/install-istio.sh
+./scripts/install-istio.sh
 
-# Install with demo profile
-istioctl install --set profile=demo -y
+# Instalar con perfil específico
+./scripts/install-istio.sh --profile production
 
-# Verify installation
-kubectl get pods -n istio-system
+# Instalar versión específica
+ISTIO_VERSION=1.19.0 ./scripts/install-istio.sh
 ```
+
+**Características:**
+- ✅ Descarga automática de Istio
+- ✅ Instalación con perfiles configurables
+- ✅ Verificación automática
+- ✅ Soporte para versiones específicas
 
 ### 2. Traffic Management
 

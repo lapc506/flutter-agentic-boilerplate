@@ -1,0 +1,9 @@
+# Container Security Scripts Dependencies
+
+# Admission Controller
+kubernetes>=28.1.0
+
+# Note: Image signing requires Notary to be installed separately
+#   brew install notary  # macOS
+#   or download from https://github.com/notaryproject/notary/releases
+

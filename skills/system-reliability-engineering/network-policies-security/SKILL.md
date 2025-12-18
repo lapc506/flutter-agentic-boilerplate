@@ -75,6 +75,11 @@ External/Internal Services
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Network Policy Manager:** [`scripts/network_policy_manager.py`](scripts/network_policy_manager.py) - Gestión de network policies (Python CLI)
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. Basic Network Policies
 
 ```yaml
@@ -289,56 +294,38 @@ spec:
 
 ### 6. Network Policy Management
 
-```python
-# network_policies/manager.py
-import kubernetes
-from typing import List, Dict
+**Script ejecutable:** [`scripts/network_policy_manager.py`](scripts/network_policy_manager.py)
 
-class NetworkPolicyManager:
-    def __init__(self):
-        kubernetes.config.load_incluster_config()
-        self.networking_v1 = kubernetes.client.NetworkingV1Api()
+Gestor de network policies para Kubernetes con validación y aplicación automática.
 
-    def create_policy(self, namespace: str, policy: Dict):
-        """Create network policy."""
-        body = kubernetes.client.V1NetworkPolicy(**policy)
-        self.networking_v1.create_namespaced_network_policy(
-            namespace, body
-        )
+**Cuándo ejecutar:**
+- Creación de network policies
+- Aplicación de políticas por defecto
+- Validación de políticas
+- Gestión programática de políticas
 
-    def list_policies(self, namespace: str) -> List[Dict]:
-        """List all network policies in namespace."""
-        policies = self.networking_v1.list_namespaced_network_policy(
-            namespace
-        )
-        return [p.to_dict() for p in policies.items]
+**Uso:**
+```bash
+# Listar policies
+python scripts/network_policy_manager.py list --namespace production
 
-    def validate_policy(self, policy: Dict) -> bool:
-        """Validate network policy configuration."""
-        # Check for required fields
-        required = ['metadata', 'spec', 'podSelector']
-        if not all(key in policy.get('spec', {}) for key in required):
-            return False
-        
-        # Validate rules
-        # Additional validation logic
-        return True
+# Crear policy
+python scripts/network_policy_manager.py create \
+  --namespace production \
+  --policy policy.json
 
-    def apply_default_policies(self, namespace: str):
-        """Apply default deny-all policy to namespace."""
-        default_policy = {
-            'metadata': {
-                'name': 'default-deny-all',
-                'namespace': namespace,
-            },
-            'spec': {
-                'podSelector': {},
-                'policyTypes': ['Ingress', 'Egress'],
-            },
-        }
-        
-        self.create_policy(namespace, default_policy)
+# Aplicar default deny-all
+python scripts/network_policy_manager.py apply-default --namespace production
+
+# Validar policy
+python scripts/network_policy_manager.py validate --policy policy.json
 ```
+
+**Características:**
+- ✅ Creación de network policies
+- ✅ Listado de políticas existentes
+- ✅ Validación de configuración
+- ✅ Aplicación de políticas por defecto
 
 ## 🎯 Mejores Prácticas
 

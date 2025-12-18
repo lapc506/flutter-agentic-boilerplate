@@ -1,0 +1,15 @@
+[package]
+name = "observability-rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+opentelemetry = "0.21"
+opentelemetry-otlp = "0.14"
+opentelemetry_sdk = "0.21"
+opentelemetry_semantic_conventions = "1.17"
+tracing = "0.1"
+tracing-opentelemetry = "0.21"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tokio = { version = "1", features = ["full"] }
+

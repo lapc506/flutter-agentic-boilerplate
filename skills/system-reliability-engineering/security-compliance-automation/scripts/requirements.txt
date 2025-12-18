@@ -1,0 +1,13 @@
+# Security & Compliance Automation Scripts Dependencies
+
+# Vulnerability Scanner
+# Requires Trivy to be installed separately:
+#   brew install trivy  # macOS
+#   or download from https://github.com/aquasecurity/trivy/releases
+
+# Compliance Checker
+boto3>=1.28.0
+
+# Auto Remediation
+kubernetes>=28.1.0
+

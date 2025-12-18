@@ -76,330 +76,183 @@ Load Testing
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **k6 Tests:** [`scripts/k6/`](scripts/k6/) - Scripts de load testing (JavaScript)
+> - **Node.js Profiling:** [`scripts/nodejs/`](scripts/nodejs/) - Herramientas de profiling (JavaScript)
+> - **Rust Benchmarks:** [`scripts/rust/`](scripts/rust/) - Benchmarks con Criterion (Rust)
+> - **Python Capacity Planning:** [`scripts/python/`](scripts/python/) - Calculadora de capacidad (Python)
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. k6 Load Testing
 
 #### 1.1 Basic Test Script
 
-```javascript
-// tests/load/basic-load.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Rate, Trend } from 'k6/metrics';
+**Script ejecutable:** [`scripts/k6/basic-load.js`](scripts/k6/basic-load.js)
 
-// Custom metrics
-const errorRate = new Rate('errors');
-const requestDuration = new Trend('request_duration');
+Script básico de load testing con k6 para APIs. Incluye métricas personalizadas, thresholds y stages configurables.
 
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },  // Ramp up to 100 users
-    { duration: '5m', target: 100 },  // Stay at 100 users
-    { duration: '2m', target: 200 },  // Ramp up to 200 users
-    { duration: '5m', target: 200 },  // Stay at 200 users
-    { duration: '2m', target: 0 },    // Ramp down to 0 users
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<500', 'p(99)<1000'], // 95% under 500ms, 99% under 1s
-    http_req_failed: ['rate<0.01'],                  // Error rate under 1%
-    errors: ['rate<0.01'],
-  },
-};
+**Cuándo ejecutar:**
+- Testing de carga básico de APIs
+- Validación de SLA de respuesta
+- Baseline de performance
 
-export default function () {
-  const baseUrl = 'https://api.example.com';
+**Uso:**
+```bash
+# Ejecutar test básico
+k6 run scripts/k6/basic-load.js
 
-  // Test endpoint
-  const response = http.get(`${baseUrl}/api/v1/users`, {
-    headers: {
-      'Authorization': 'Bearer ' + __ENV.API_TOKEN,
-    },
-  });
-
-  // Check response
-  const success = check(response, {
-    'status is 200': (r) => r.status === 200,
-    'response time < 500ms': (r) => r.timings.duration < 500,
-    'has data': (r) => JSON.parse(r.body).data.length > 0,
-  });
-
-  errorRate.add(!success);
-  requestDuration.add(response.timings.duration);
-
-  sleep(1);
-}
+# Con variables de entorno
+k6 run scripts/k6/basic-load.js \
+  --env BASE_URL=https://api.example.com \
+  --env API_TOKEN=your-token
 ```
+
+**Características:**
+- ✅ Stages configurables (ramp up/down)
+- ✅ Thresholds de latencia y error rate
+- ✅ Métricas personalizadas (error rate, request duration)
+- ✅ Variables de entorno para configuración
 
 #### 1.2 Advanced Test with Scenarios
 
-```javascript
-// tests/load/advanced-scenarios.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { SharedArray } from 'k6/data';
+**Script ejecutable:** [`scripts/k6/advanced-scenarios.js`](scripts/k6/advanced-scenarios.js)
 
-// Shared test data
-const users = new SharedArray('users', function () {
-  return JSON.parse(open('./test-data/users.json'));
-});
+Test avanzado con múltiples escenarios simulando diferentes comportamientos de usuarios (browse, checkout, search).
 
-export const options = {
-  scenarios: {
-    // Browse products (high volume, low intensity)
-    browse_products: {
-      executor: 'ramping-vus',
-      startVUs: 0,
-      stages: [
-        { duration: '5m', target: 100 },
-        { duration: '10m', target: 100 },
-        { duration: '5m', target: 0 },
-      ],
-      gracefulRampDown: '30s',
-    },
+**Cuándo ejecutar:**
+- Testing de escenarios realistas
+- Simulación de diferentes tipos de usuarios
+- Testing de e-commerce o aplicaciones complejas
 
-    // Checkout (low volume, high intensity)
-    checkout: {
-      executor: 'constant-arrival-rate',
-      rate: 10, // 10 iterations per second
-      timeUnit: '1s',
-      duration: '20m',
-      preAllocatedVUs: 5,
-      maxVUs: 20,
-    },
+**Uso:**
+```bash
+# Ejecutar todos los escenarios
+k6 run scripts/k6/advanced-scenarios.js
 
-    // Search (medium volume, medium intensity)
-    search: {
-      executor: 'shared-iterations',
-      vus: 50,
-      iterations: 10000,
-      maxDuration: '30m',
-    },
-  },
-  thresholds: {
-    http_req_duration: ['p(95)<500'],
-    http_req_failed: ['rate<0.01'],
-    'http_req_duration{browse_products}': ['p(95)<300'],
-    'http_req_duration{checkout}': ['p(95)<1000'],
-  },
-};
-
-export default function () {
-  const scenario = __ENV.SCENARIO || 'browse_products';
-  
-  switch (scenario) {
-    case 'browse_products':
-      browseProducts();
-      break;
-    case 'checkout':
-      checkout();
-      break;
-    case 'search':
-      search();
-      break;
-  }
-}
-
-function browseProducts() {
-  const response = http.get('https://api.example.com/products', {
-    tags: { name: 'BrowseProducts' },
-  });
-  
-  check(response, {
-    'status is 200': (r) => r.status === 200,
-  });
-  
-  sleep(Math.random() * 3 + 1); // Random sleep 1-4s
-}
-
-function checkout() {
-  const user = users[Math.floor(Math.random() * users.length)];
-  
-  const response = http.post(
-    'https://api.example.com/checkout',
-    JSON.stringify({
-      userId: user.id,
-      items: [{ productId: '123', quantity: 1 }],
-    }),
-    {
-      headers: { 'Content-Type': 'application/json' },
-      tags: { name: 'Checkout' },
-    }
-  );
-  
-  check(response, {
-    'status is 200': (r) => r.status === 200,
-    'checkout successful': (r) => JSON.parse(r.body).orderId !== null,
-  });
-}
-
-function search() {
-  const query = ['laptop', 'phone', 'tablet'][Math.floor(Math.random() * 3)];
-  
-  const response = http.get(
-    `https://api.example.com/search?q=${query}`,
-    { tags: { name: 'Search' } }
-  );
-  
-  check(response, {
-    'status is 200': (r) => r.status === 200,
-    'has results': (r) => JSON.parse(r.body).results.length > 0,
-  });
-  
-  sleep(0.5);
-}
+# Ejecutar escenario específico
+k6 run scripts/k6/advanced-scenarios.js --env SCENARIO=browse_products
 ```
+
+**Características:**
+- ✅ Múltiples escenarios simultáneos
+- ✅ Diferentes tipos de executors (ramping-vus, constant-arrival-rate, shared-iterations)
+- ✅ Thresholds por escenario
+- ✅ Simulación de comportamiento realista
 
 #### 1.3 Stress Test
 
-```javascript
-// tests/stress/stress-test.js
-import http from 'k6/http';
-import { check } from 'k6';
+**Script ejecutable:** [`scripts/k6/stress-test.js`](scripts/k6/stress-test.js)
 
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },
-    { duration: '5m', target: 100 },
-    { duration: '2m', target: 200 },
-    { duration: '5m', target: 200 },
-    { duration: '2m', target: 300 },
-    { duration: '5m', target: 300 },
-    { duration: '2m', target: 400 },
-    { duration: '5m', target: 400 },
-    { duration: '10m', target: 0 }, // Recovery
-  ],
-  thresholds: {
-    http_req_failed: ['rate<0.05'], // Allow up to 5% errors under stress
-    http_req_duration: ['p(95)<2000'], // Relaxed under stress
-  },
-};
+Stress test que incrementa gradualmente la carga más allá de la capacidad normal para encontrar puntos de quiebre.
 
-export default function () {
-  const response = http.get('https://api.example.com/api/v1/data');
-  
-  check(response, {
-    'status is 200': (r) => r.status === 200,
-  });
-}
+**Cuándo ejecutar:**
+- Encontrar límites del sistema
+- Identificar puntos de quiebre
+- Testing de recovery después de stress
+
+**Uso:**
+```bash
+k6 run scripts/k6/stress-test.js
+k6 run scripts/k6/stress-test.js --env BASE_URL=https://api.example.com
 ```
+
+**Características:**
+- ✅ Incremento gradual de carga
+- ✅ Thresholds relajados para stress testing
+- ✅ Período de recovery incluido
 
 ### 2. Performance Profiling
 
 #### 2.1 Application Profiling (Node.js)
 
-```javascript
-// profiling/performance-profiler.js
-const profiler = require('v8-profiler-node8');
-const fs = require('fs');
+**Script ejecutable:** [`scripts/nodejs/performance-profiler.js`](scripts/nodejs/performance-profiler.js)
 
-class PerformanceProfiler {
-  startProfiling(name = 'profile') {
-    profiler.startProfiling(name);
-  }
+Herramienta de CPU profiling para aplicaciones Node.js usando v8-profiler.
 
-  stopProfiling(name = 'profile') {
-    const profile = profiler.stopProfiling(name);
-    const data = profile.export();
-    profile.delete();
-    
-    fs.writeFileSync(`${name}.cpuprofile`, JSON.stringify(data));
-    console.log(`Profile saved to ${name}.cpuprofile`);
-  }
+**Cuándo ejecutar:**
+- Identificar cuellos de botella de CPU
+- Profiling de funciones específicas
+- Análisis de performance de Node.js
 
-  async profileFunction(fn, name) {
-    this.startProfiling(name);
-    const result = await fn();
-    this.stopProfiling(name);
-    return result;
-  }
-}
+**Uso:**
+```bash
+cd scripts/nodejs
+npm install
 
-// Usage
-const profiler = new PerformanceProfiler();
+# Profiling por duración
+node performance-profiler.js --profile-name my-app --duration=60
 
-async function slowFunction() {
-  // Your code here
-  await someAsyncOperation();
-}
-
-profiler.profileFunction(slowFunction, 'slow-function-profile');
+# Programático (en tu código)
+const profiler = require('./performance-profiler');
+const profilerInstance = new profiler();
+await profilerInstance.profileFunction(slowFunction, 'slow-function-profile');
 ```
+
+**Características:**
+- ✅ CPU profiling con v8-profiler
+- ✅ Exportación a formato .cpuprofile (Chrome DevTools)
+- ✅ Profiling de funciones específicas
+- ✅ CLI y uso programático
 
 #### 2.2 Memory Profiling
 
-```javascript
-// profiling/memory-profiler.js
-const heapdump = require('heapdump');
+**Script ejecutable:** [`scripts/nodejs/memory-profiler.js`](scripts/nodejs/memory-profiler.js)
 
-class MemoryProfiler {
-  takeSnapshot(filename) {
-    heapdump.writeSnapshot((err, filename) => {
-      if (err) {
-        console.error('Error taking heap snapshot:', err);
-      } else {
-        console.log(`Heap snapshot saved to ${filename}`);
-      }
-    });
-  }
+Herramienta de memory profiling y monitoreo para aplicaciones Node.js.
 
-  monitorMemory() {
-    setInterval(() => {
-      const usage = process.memoryUsage();
-      console.log({
-        rss: `${Math.round(usage.rss / 1024 / 1024)} MB`,
-        heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)} MB`,
-        heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)} MB`,
-        external: `${Math.round(usage.external / 1024 / 1024)} MB`,
-      });
-    }, 5000);
-  }
-}
+**Cuándo ejecutar:**
+- Detectar memory leaks
+- Monitoreo continuo de memoria
+- Análisis de uso de heap
+
+**Uso:**
+```bash
+# Monitoreo continuo
+node memory-profiler.js --monitor --interval=5000
+
+# Tomar snapshot
+node memory-profiler.js --snapshot --filename=heap.heapsnapshot
+
+# Ver uso actual
+node memory-profiler.js
 ```
+
+**Características:**
+- ✅ Heap snapshots (.heapsnapshot para Chrome DevTools)
+- ✅ Monitoreo continuo de memoria
+- ✅ Métricas detalladas (RSS, heap, external)
 
 #### 2.3 Performance Profiling (Rust)
 
-```toml
-# Cargo.toml
-[dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
-pprof = "0.12"
-tokio = { version = "1", features = ["full"] }
-```
+**Script ejecutable:** [`scripts/rust/benches/my_benchmark.rs`](scripts/rust/benches/my_benchmark.rs)
 
-```rust
-// benches/my_benchmark.rs
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use my_service::process_request;
+Benchmarks de performance para código Rust usando Criterion.
 
-fn benchmark_requests(c: &mut Criterion) {
-    let mut group = c.benchmark_group("api_requests");
-    
-    group.bench_function("process_request", |b| {
-        b.iter(|| {
-            process_request(black_box("test_data"));
-        });
-    });
-    
-    group.bench_function("process_request_large", |b| {
-        let large_data = "x".repeat(10000);
-        b.iter(|| {
-            process_request(black_box(&large_data));
-        });
-    });
-    
-    group.finish();
-}
+**Cuándo ejecutar:**
+- Benchmarking de funciones críticas
+- Comparación de implementaciones
+- Validación de optimizaciones
 
-criterion_group!(benches, benchmark_requests);
-criterion_main!(benches);
-```
-
+**Uso:**
 ```bash
+cd scripts/rust
+
 # Ejecutar benchmarks
 cargo bench
 
 # Con profiling integrado
 cargo bench -- --profile-time=10
+
+# Ver reportes HTML
+open target/criterion/report/index.html
 ```
+
+**Características:**
+- ✅ Benchmarks con Criterion
+- ✅ Reportes HTML detallados
+- ✅ Comparación entre ejecuciones
+- ✅ Estadísticas avanzadas (percentiles, outliers)
 
 #### 2.4 CPU Profiling con perf (Rust)
 
@@ -598,171 +451,59 @@ async fn main() -> std::io::Result<()> {
 
 #### 2.8 Load Testing Rust Backend con k6
 
-```javascript
-// tests/load/rust-api-load.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Rate, Trend } from 'k6/metrics';
+**Script ejecutable:** [`scripts/k6/rust-api-load.js`](scripts/k6/rust-api-load.js)
 
-const errorRate = new Rate('errors');
-const requestDuration = new Trend('request_duration');
+Test de carga optimizado para APIs Rust con thresholds más estrictos debido al mejor rendimiento esperado.
 
-export const options = {
-  stages: [
-    { duration: '2m', target: 100 },
-    { duration: '5m', target: 100 },
-    { duration: '2m', target: 200 },
-    { duration: '5m', target: 200 },
-    { duration: '2m', target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<50', 'p(99)<100'], // Rust debería ser más rápido
-    http_req_failed: ['rate<0.01'],
-  },
-};
-
-export default function () {
-  const baseUrl = 'http://localhost:8080';
-  
-  // Test health endpoint
-  const healthCheck = http.get(`${baseUrl}/health`, {
-    tags: { name: 'HealthCheck' },
-  });
-  check(healthCheck, {
-    'health check status 200': (r) => r.status === 200,
-  });
-
-  // Test API endpoint
-  const startTime = Date.now();
-  const response = http.get(`${baseUrl}/api/users`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    tags: { name: 'GetUsers' },
-  });
-  
-  const duration = Date.now() - startTime;
-  
-  const success = check(response, {
-    'status is 200': (r) => r.status === 200,
-    'response time < 50ms': (r) => r.timings.duration < 50,
-    'has users': (r) => {
-      try {
-        const data = JSON.parse(r.body);
-        return data.users && data.users.length > 0;
-      } catch {
-        return false;
-      }
-    },
-  });
-
-  errorRate.add(!success);
-  requestDuration.add(duration);
-
-  sleep(1);
-}
+**Uso:**
+```bash
+k6 run scripts/k6/rust-api-load.js --env BASE_URL=http://localhost:8080
 ```
 
 #### 2.9 Performance Comparison Testing
 
-```javascript
-// tests/load/performance-comparison.js
-import http from 'k6/http';
-import { check } from 'k6';
-import { Trend } from 'k6/metrics';
+**Script ejecutable:** [`scripts/k6/performance-comparison.js`](scripts/k6/performance-comparison.js)
 
-const rustApiDuration = new Trend('rust_api_duration');
-const nodeApiDuration = new Trend('node_api_duration');
+Test de comparación de performance entre diferentes backends (Rust vs Node.js, etc.).
 
-export const options = {
-  vus: 50,
-  duration: '5m',
-};
-
-export default function () {
-  // Test Rust backend
-  const rustStart = Date.now();
-  const rustResponse = http.get('http://rust-api:8080/api/data');
-  rustApiDuration.add(Date.now() - rustStart);
-  
-  check(rustResponse, {
-    'rust api status 200': (r) => r.status === 200,
-  });
-
-  // Test Node.js backend (comparison)
-  const nodeStart = Date.now();
-  const nodeResponse = http.get('http://node-api:3000/api/data');
-  nodeApiDuration.add(Date.now() - nodeStart);
-  
-  check(nodeResponse, {
-    'node api status 200': (r) => r.status === 200,
-  });
-}
+**Uso:**
+```bash
+k6 run scripts/k6/performance-comparison.js \
+  --env RUST_API=http://rust-api:8080 \
+  --env NODE_API=http://node-api:3000
 ```
 
 ### 3. Capacity Planning
 
-```python
-# capacity_planning/calculator.py
-from dataclasses import dataclass
-from typing import List
+**Script ejecutable:** [`scripts/python/capacity_calculator.py`](scripts/python/capacity_calculator.py)
 
-@dataclass
-class CapacityMetrics:
-    current_users: int
-    peak_users: int
-    avg_request_per_user_per_sec: float
-    avg_response_time_ms: float
-    error_rate: float
-    current_throughput_rps: float
-    max_throughput_rps: float
+Calculadora de capacidad para planificación de recursos basada en métricas de uso.
 
-class CapacityPlanner:
-    def __init__(self, metrics: CapacityMetrics):
-        self.metrics = metrics
+**Cuándo ejecutar:**
+- Planificación de escalado
+- Estimación de recursos necesarios
+- Análisis de capacidad actual
 
-    def calculate_capacity_headroom(self) -> float:
-        """Calculate current capacity headroom."""
-        utilization = self.metrics.current_throughput_rps / self.metrics.max_throughput_rps
-        return 1.0 - utilization
+**Uso:**
+```bash
+cd scripts/python
 
-    def estimate_max_users(self, target_error_rate: float = 0.01) -> int:
-        """Estimate maximum users with acceptable error rate."""
-        # Simple estimation: assume linear scaling until error rate threshold
-        users_at_max = int(
-            self.metrics.peak_users * 
-            (self.metrics.max_throughput_rps / self.metrics.current_throughput_rps)
-        )
-        return users_at_max
+# Generar reporte de capacidad
+python capacity_calculator.py --report
 
-    def calculate_resources_needed(
-        self,
-        target_users: int,
-        target_error_rate: float = 0.01
-    ) -> dict:
-        """Calculate resources needed for target user count."""
-        current_users_per_instance = (
-            self.metrics.peak_users / 
-            self._get_current_instance_count()
-        )
-        
-        required_rps = target_users * self.metrics.avg_request_per_user_per_sec
-        required_instances = int(
-            required_rps / self.metrics.max_throughput_rps
-        ) + 1  # Add buffer
-        
-        return {
-            "target_users": target_users,
-            "required_instances": required_instances,
-            "required_rps": required_rps,
-            "current_instances": self._get_current_instance_count(),
-            "scaling_factor": required_instances / self._get_current_instance_count(),
-        }
-
-    def _get_current_instance_count(self) -> int:
-        # Logic to get current instance count
-        return 3  # Example
+# Calcular recursos para usuarios objetivo
+python capacity_calculator.py \
+  --target-users 5000 \
+  --current-users 1000 \
+  --max-throughput 1000.0 \
+  --current-instances 3
 ```
+
+**Características:**
+- ✅ Cálculo de capacity headroom
+- ✅ Estimación de usuarios máximos
+- ✅ Cálculo de recursos necesarios
+- ✅ Reportes detallados
 
 ### 4. CI/CD Integration
 

@@ -1,0 +1,5 @@
+# Network Policies & Security Scripts Dependencies
+
+# Network Policy Manager
+kubernetes>=28.1.0
+

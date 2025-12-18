@@ -360,6 +360,14 @@ datasources:
 
 ### 3. OpenTelemetry - Distributed Tracing
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Node.js Instrumentation:** [`scripts/nodejs/instrumentation.js`](scripts/nodejs/instrumentation.js) - Setup de OpenTelemetry para Node.js
+> - **Node.js Custom Spans:** [`scripts/nodejs/userService.js`](scripts/nodejs/userService.js) - Ejemplo de custom spans
+> - **Rust Instrumentation:** [`scripts/rust/src/telemetry.rs`](scripts/rust/src/telemetry.rs) - Setup de OpenTelemetry para Rust
+> - **Rust Custom Spans:** [`scripts/rust/src/services/user_service.rs`](scripts/rust/src/services/user_service.rs) - Ejemplo de custom spans en Rust
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 #### 3.1 OpenTelemetry Collector Configuration
 
 ```yaml
@@ -439,220 +447,86 @@ service:
       exporters: [prometheus, logging]
 ```
 
-#### 3.2 Application Instrumentation (Node.js Example)
+#### 3.2 Application Instrumentation (Node.js)
 
+**Script ejecutable:** [`scripts/nodejs/instrumentation.js`](scripts/nodejs/instrumentation.js)
+
+Instrumentación OpenTelemetry para aplicaciones Node.js con auto-instrumentation.
+
+**Cuándo ejecutar:**
+- Inicio de aplicación Node.js
+- Setup de distributed tracing
+- Integración con Jaeger/OTLP
+
+**Uso:**
+```bash
+cd scripts/nodejs
+npm install
+
+# En tu aplicación, importa al inicio:
+require('./instrumentation');
+
+# O con variables de entorno:
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces node app.js
+```
+
+**Características:**
+- ✅ Auto-instrumentation (HTTP, Express, PostgreSQL, Redis)
+- ✅ OTLP exporter
+- ✅ Resource attributes configurables
+- ✅ Graceful shutdown
+
+#### 3.3 Custom Spans (Node.js)
+
+**Script ejecutable:** [`scripts/nodejs/userService.js`](scripts/nodejs/userService.js)
+
+Ejemplo de servicio con custom spans para tracing personalizado.
+
+**Uso:**
 ```javascript
-// app/instrumentation.js
-const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-http');
-const { Resource } = require('@opentelemetry/resources');
-const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
-
-const sdk = new NodeSDK({
-  resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'my-service',
-    [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
-    [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: process.env.ENV || 'development',
-  }),
-  traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
-  }),
-  instrumentations: [getNodeAutoInstrumentations({
-    '@opentelemetry/instrumentation-http': {
-      enabled: true,
-      ignoreIncomingRequestHook: (req) => {
-        // Ignore health checks
-        return req.url === '/health';
-      },
-    },
-    '@opentelemetry/instrumentation-express': {
-      enabled: true,
-    },
-  })],
-});
-
-sdk.start();
+const { getUserById } = require('./userService');
+const user = await getUserById('123');
 ```
 
-#### 3.3 Custom Spans
+#### 3.4 Application Instrumentation (Rust)
 
-```javascript
-// app/services/userService.js
-const { trace } = require('@opentelemetry/api');
+**Script ejecutable:** [`scripts/rust/src/telemetry.rs`](scripts/rust/src/telemetry.rs)
 
-const tracer = trace.getTracer('user-service');
+Setup de OpenTelemetry para aplicaciones Rust con tracing.
 
-async function getUserById(userId) {
-  const span = tracer.startSpan('getUserById', {
-    attributes: {
-      'user.id': userId,
-      'operation.type': 'read',
-    },
-  });
+**Cuándo ejecutar:**
+- Inicio de aplicación Rust
+- Setup de distributed tracing
+- Integración con Jaeger/OTLP
 
-  try {
-    span.addEvent('Fetching user from database');
-    const user = await db.users.findById(userId);
-    
-    span.setAttribute('user.found', !!user);
-    span.setStatus({ code: SpanStatusCode.OK });
-    
-    return user;
-  } catch (error) {
-    span.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: error.message,
-    });
-    span.recordException(error);
-    throw error;
-  } finally {
-    span.end();
-  }
-}
+**Uso:**
+```bash
+cd scripts/rust
+cargo build --release
+
+# Ejecutar
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces ./target/release/observability-rust
+
+# O usar como librería en tu proyecto
 ```
 
-#### 3.4 Application Instrumentation (Rust Example)
-
-```rust
-// Cargo.toml
-[dependencies]
-opentelemetry = "0.21"
-opentelemetry-otlp = "0.14"
-opentelemetry_sdk = "0.21"
-tracing = "0.1"
-tracing-opentelemetry = "0.21"
-tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
-tokio = { version = "1", features = ["full"] }
-```
-
-```rust
-// src/telemetry.rs
-use opentelemetry::global;
-use opentelemetry::sdk::trace::TracerProvider;
-use opentelemetry::sdk::Resource;
-use opentelemetry::KeyValue;
-use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_semantic_conventions::resource::SERVICE_NAME;
-use opentelemetry_semantic_conventions::resource::SERVICE_VERSION;
-use opentelemetry_semantic_conventions::resource::DEPLOYMENT_ENVIRONMENT;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::Registry;
-
-pub fn init_tracer(service_name: &str, service_version: &str, environment: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let otlp_exporter = opentelemetry_otlp::new_exporter()
-        .http()
-        .with_endpoint(
-            std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
-                .unwrap_or_else(|_| "http://localhost:4318/v1/traces".to_string())
-        );
-
-    let tracer_provider = TracerProvider::builder()
-        .with_batch_exporter(otlp_exporter)
-        .with_resource(Resource::new(vec![
-            KeyValue::new(SERVICE_NAME, service_name.to_string()),
-            KeyValue::new(SERVICE_VERSION, service_version.to_string()),
-            KeyValue::new(DEPLOYMENT_ENVIRONMENT, environment.to_string()),
-        ]))
-        .build();
-
-    global::set_tracer_provider(tracer_provider);
-
-    // Initialize tracing subscriber
-    let telemetry = tracing_opentelemetry::layer()
-        .with_tracer(global::tracer("my-service"));
-
-    let subscriber = Registry::default()
-        .with(telemetry)
-        .with(
-            tracing_subscriber::fmt::layer()
-                .json()
-                .with_target(false)
-                .with_current_span(false)
-        )
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into())
-        );
-
-    subscriber.init();
-
-    Ok(())
-}
-
-pub fn shutdown() {
-    global::shutdown_tracer_provider();
-}
-```
-
-```rust
-// src/main.rs
-use tracing::{info, instrument};
-use crate::telemetry::init_tracer;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize OpenTelemetry
-    init_tracer(
-        "my-service",
-        "1.0.0",
-        std::env::var("ENV").unwrap_or_else(|_| "development".to_string()).as_str()
-    )?;
-
-    info!("Service started");
-
-    // Your application code here
-
-    Ok(())
-}
-```
+**Características:**
+- ✅ OpenTelemetry tracing
+- ✅ OTLP exporter
+- ✅ Structured logging con tracing-subscriber
+- ✅ Resource attributes configurables
 
 #### 3.5 Custom Spans (Rust)
 
-```rust
-// src/services/user_service.rs
-use opentelemetry::trace::{Span, Tracer, TracerProvider as _};
-use opentelemetry::global;
-use opentelemetry::trace::Status;
-use tracing::{instrument, error};
+**Script ejecutable:** [`scripts/rust/src/services/user_service.rs`](scripts/rust/src/services/user_service.rs)
 
-pub struct UserService;
+Ejemplo de servicio Rust con custom spans y attributes.
 
-impl UserService {
-    #[instrument(skip(self), fields(user.id = %user_id))]
-    pub async fn get_user_by_id(&self, user_id: String) -> Result<User, ServiceError> {
-        let tracer = global::tracer("user-service");
-        let mut span = tracer.start("getUserById");
-        
-        span.set_attribute(opentelemetry::KeyValue::new("user.id", user_id.clone()));
-        span.set_attribute(opentelemetry::KeyValue::new("operation.type", "read"));
-
-        span.add_event("Fetching user from database", vec![]);
-
-        match self.fetch_user_from_db(&user_id).await {
-            Ok(user) => {
-                span.set_attribute(opentelemetry::KeyValue::new("user.found", true));
-                span.set_status(Status::Ok);
-                span.end();
-                Ok(user)
-            }
-            Err(e) => {
-                span.set_status(Status::error(e.to_string()));
-                span.record_exception(&e);
-                error!(error = %e, "Failed to fetch user");
-                span.end();
-                Err(e)
-            }
-        }
-    }
-
-    async fn fetch_user_from_db(&self, user_id: &str) -> Result<User, ServiceError> {
-        // Database query implementation
-        todo!()
-    }
-}
-```
+**Características:**
+- ✅ Custom spans con attributes
+- ✅ Event tracking
+- ✅ Error recording
+- ✅ Status codes
 
 #### 3.6 Prometheus Metrics (Rust)
 

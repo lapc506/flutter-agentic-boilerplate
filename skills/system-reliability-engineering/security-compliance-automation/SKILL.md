@@ -71,6 +71,13 @@ Automated Remediation
 
 ## 💻 Implementación
 
+> **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
+> - **Vulnerability Scanner:** [`scripts/vulnerability_scanner.py`](scripts/vulnerability_scanner.py) - Escaneo de vulnerabilidades con Trivy
+> - **Compliance Checker:** [`scripts/compliance_checker.py`](scripts/compliance_checker.py) - Verificación de compliance AWS
+> - **Auto Remediation:** [`scripts/auto_remediation.py`](scripts/auto_remediation.py) - Remediation automática Kubernetes
+> 
+> Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
+
 ### 1. OPA Policies
 
 ```rego
@@ -195,63 +202,32 @@ class VulnerabilityScanner:
 
 ### 3. Compliance Automation
 
-```python
-# compliance/compliance_checker.py
-import boto3
-from typing import List, Dict
+**Script ejecutable:** [`scripts/compliance_checker.py`](scripts/compliance_checker.py)
 
-class ComplianceChecker:
-    def __init__(self):
-        self.config_client = boto3.client('config')
+Verificador de compliance para recursos AWS contra CIS benchmarks.
 
-    def check_cis_benchmark(self) -> Dict:
-        """Check AWS resources against CIS benchmark."""
-        rules = [
-            'access-keys-rotated',
-            'iam-password-policy',
-            'root-access-key-check',
-            's3-bucket-public-read-prohibited',
-            's3-bucket-public-write-prohibited',
-            'ec2-instance-managed-by-systems-manager',
-            'encrypted-volumes',
-        ]
-        
-        results = {}
-        for rule in rules:
-            compliance = self._check_rule_compliance(rule)
-            results[rule] = compliance
-        
-        return results
+**Cuándo ejecutar:**
+- Auditorías de compliance regulares
+- Verificación de políticas AWS
+- Generación de reportes de compliance
 
-    def _check_rule_compliance(self, rule_name: str) -> Dict:
-        """Check compliance for a specific rule."""
-        response = self.config_client.describe_compliance_by_config_rule(
-            ConfigRuleNames=[rule_name]
-        )
-        
-        if response['ComplianceByConfigRules']:
-            compliance = response['ComplianceByConfigRules'][0]
-            return {
-                'rule_name': rule_name,
-                'compliance_type': compliance['ComplianceType'],
-                'compliance_summary': compliance.get('ComplianceSummary', {}),
-            }
-        
-        return {'rule_name': rule_name, 'compliance_type': 'NOT_APPLICABLE'}
+**Uso:**
+```bash
+# Verificar CIS benchmark
+python scripts/compliance_checker.py check-cis
 
-    def generate_compliance_report(self) -> str:
-        """Generate compliance report."""
-        results = self.check_cis_benchmark()
-        
-        report = "Compliance Report\n"
-        report += "=" * 50 + "\n\n"
-        
-        for rule, compliance in results.items():
-            status = compliance['compliance_type']
-            report += f"{rule}: {status}\n"
-        
-        return report
+# Verificar regla específica
+python scripts/compliance_checker.py check-rule --rule-name access-keys-rotated
+
+# Generar reporte
+python scripts/compliance_checker.py report --output compliance-report.txt
 ```
+
+**Características:**
+- ✅ Verificación de CIS benchmark
+- ✅ Verificación de reglas específicas
+- ✅ Generación de reportes detallados
+- ✅ Soporte multi-región
 
 ### 4. Security Policies as Code
 
@@ -293,65 +269,35 @@ data:
 
 ### 5. Automated Remediation
 
-```python
-# security/auto_remediation.py
-import kubernetes
-from typing import Dict
+**Script ejecutable:** [`scripts/auto_remediation.py`](scripts/auto_remediation.py)
 
-class AutoRemediator:
-    def __init__(self):
-        kubernetes.config.load_incluster_config()
-        self.apps_v1 = kubernetes.client.AppsV1Api()
-        self.core_v1 = kubernetes.client.CoreV1Api()
+Remediation automática de problemas de seguridad y compliance en Kubernetes.
 
-    def remediate_security_issue(self, issue: Dict):
-        """Automatically remediate security issues."""
-        issue_type = issue.get('type')
-        
-        if issue_type == 'missing_resource_limits':
-            self._add_resource_limits(issue['resource'])
-        elif issue_type == 'root_container':
-            self._fix_run_as_user(issue['resource'])
-        elif issue_type == 'missing_security_context':
-            self._add_security_context(issue['resource'])
+**Cuándo ejecutar:**
+- Remediation automática de recursos no-compliant
+- Corrección de problemas de seguridad
+- Aplicación de políticas de seguridad
 
-    def _add_resource_limits(self, resource: Dict):
-        """Add resource limits to deployment."""
-        namespace = resource['metadata']['namespace']
-        name = resource['metadata']['name']
-        
-        deployment = self.apps_v1.read_namespaced_deployment(name, namespace)
-        
-        for container in deployment.spec.template.spec.containers:
-            if not container.resources:
-                container.resources = kubernetes.client.V1ResourceRequirements()
-            if not container.resources.limits:
-                container.resources.limits = {
-                    'cpu': '500m',
-                    'memory': '512Mi',
-                }
-        
-        self.apps_v1.patch_namespaced_deployment(
-            name, namespace, deployment
-        )
+**Uso:**
+```bash
+# Remediar namespace completo
+python scripts/auto_remediation.py remediate --namespace production
 
-    def _fix_run_as_user(self, resource: Dict):
-        """Fix containers running as root."""
-        namespace = resource['metadata']['namespace']
-        name = resource['metadata']['name']
-        
-        deployment = self.apps_v1.read_namespaced_deployment(name, namespace)
-        
-        for container in deployment.spec.template.spec.containers:
-            if not container.security_context:
-                container.security_context = kubernetes.client.V1SecurityContext()
-            container.security_context.run_as_user = 1000
-            container.security_context.run_as_non_root = True
-        
-        self.apps_v1.patch_namespaced_deployment(
-            name, namespace, deployment
-        )
+# Dry run (ver qué se remediaría)
+python scripts/auto_remediation.py remediate --namespace production --dry-run
+
+# Remediar recurso específico
+python scripts/auto_remediation.py remediate-resource \
+  --kind Pod \
+  --name my-pod \
+  --namespace default
 ```
+
+**Características:**
+- ✅ Remediation automática de pods
+- ✅ Corrección de security contexts
+- ✅ Aplicación de resource limits
+- ✅ Dry-run mode para preview
 
 ## 🎯 Mejores Prácticas
 

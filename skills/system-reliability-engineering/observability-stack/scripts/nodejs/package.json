@@ -1,0 +1,26 @@
+{
+  "name": "observability-nodejs",
+  "version": "1.0.0",
+  "description": "OpenTelemetry instrumentation for Node.js applications",
+  "main": "instrumentation.js",
+  "scripts": {
+    "test": "node userService.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-node": "^0.45.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.40.0",
+    "@opentelemetry/exporter-otlp-http": "^0.45.0",
+    "@opentelemetry/resources": "^1.17.0",
+    "@opentelemetry/semantic-conventions": "^1.17.0"
+  },
+  "keywords": [
+    "opentelemetry",
+    "tracing",
+    "observability",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
