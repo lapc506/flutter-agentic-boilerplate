@@ -32,6 +32,8 @@ skills/
 │   ├── ovhcloud/
 │   ├── ansible-awx/
 │   └── crossplane/
+├── backend/                    # Skills para desarrollo Backend
+│   └── hexagonal-architecture/
 └── figma/                      # Skills para integración con Figma
 ```
 
@@ -74,6 +76,12 @@ skills/
 | 7 | **OVHCloud** | 🟡 Intermedio | [`cicd/ovhcloud/`](./cicd/ovhcloud/) | `ovh`, `ovhcloud`, `kubernetes` |
 | 8 | **Ansible AWX** | 🔴 Avanzado | [`cicd/ansible-awx/`](./cicd/ansible-awx/) | `ansible`, `awx`, `automation` |
 | 9 | **Crossplane** | 🔴 Avanzado | [`cicd/crossplane/`](./cicd/crossplane/) | `crossplane`, `multi-cloud` |
+
+### 🖇️ Backend Skills
+
+| # | Skill | Nivel | Path | Keywords |
+|---|-------|-------|------|----------|
+| 1 | **Hexagonal Architecture** | 🔴 Avanzado | [`backend/hexagonal-architecture/`](./backend/hexagonal-architecture/) | `hexagonal`, `hexagonal-architecture`, `ports-and-adapters`, `ddd` |
 
 ### 🔧 System Reliability Engineering (SRE) Skills
 

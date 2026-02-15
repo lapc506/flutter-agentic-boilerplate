@@ -57,7 +57,71 @@ my-app-monorepo/
 - **CI/CD**: GitHub Actions + ArgoCD
 - **Cloud**: AWS/GCP/Azure (multi-cloud con Crossplane)
 - **Orchestration**: Kubernetes (EKS/GKE/AKS)
-- **Automation**: Ansible AWX para config management
+- **Automation**: Ansible AWX para## 🔄 Flujo de Ciclo de Vida (DEV a PROD)
+
+Para garantizar la estabilidad desde el desarrollo local hasta la producción, se define el siguiente flujo:
+
+1.  **DEV (Local - Kind en Ubuntu)**: 
+    - **Uso**: Desarrollo rápido, pruebas de integración locales.
+    - **Aislamiento**: Cada desarrollador tiene su propio cluster Kind.
+    - **PostgreSQL**: Instancia local dentro de Kind con persistencia en el host.
+2.  **QA (Entorno de Pruebas Automatizadas)**:
+    - **Uso**: Validación de Pull Requests (PRs).
+    - **Trigger**: GitHub Actions despliega automáticamente en un cluster de QA efímero.
+3.  **STAGE (Pre-producción)**:
+    - **Uso**: Manual QA y User Acceptance Testing (UAT).
+    - **Config**: Espejo de PROD con configuraciones reales (SSL, Ingress real).
+4.  **PROD (Producción)**:
+    - **Uso**: Usuarios finales. Alta disponibilidad y monitoreo activado.
+
+---
+
+## 🛠️ Configuración de Kind para Acceso Externo (DB)
+
+Para acceder a PostgreSQL (puerto `5432`) desde herramientas como **DBeaver** o **DataGrip** en Ubuntu, se debe usar `extraPortMappings` en el archivo de configuración de Kind:
+
+```yaml
+# kind-config.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  # Mapeo para PostgreSQL
+  - containerPort: 30432 # El NodePort definido en el Service de K8s
+    hostPort: 5432       # El puerto que usarás en DBeaver (localhost:5432)
+    protocol: TCP
+  # Opcional: Mapeo para el API Gateway (HTTP)
+  - containerPort: 30080
+    hostPort: 80
+    protocol: TCP
+```
+
+> [!IMPORTANT]
+> En tus manifiestos de Kubernetes (Service de Postgres), debes asegurarte de que el tipo de servicio sea `NodePort` y que el `nodePort` coincida con el `containerPort` configurado arriba (`30432`).
+
+---
+
+## 🔎 ¿Qué falta en @[specs/altrupets] ?
+
+Al revisar los actuales documentos de diseño y requisitos, se identifican las siguientes ausencias críticas para la estandarización de entornos:
+
+1.  **Environment Segregation Strategy**: No hay un detalle de cómo se gestionan los secretos y las variables de entorno de forma diferenciada entre DEV, QA y PROD.
+2.  **Local Dev Guide**: Falta un documento técnico (ej. `local-dev.md`) que explique el paso a paso para levantar el entorno con Kind, incluyendo la configuración de red y base de datos local.
+3.  **Database Migration Workflow**: No se especifica cómo se ejecutan las migraciones de base de datos en los diferentes entornos de forma coordinada con los despliegues de ArgoCD.
+4.  **External Tooling Guidelines**: Instrucciones sobre cómo conectar herramientas externas (DBeaver, Lens, Prometheus) al cluster Kind local.
+
+---
+
+## 💡 Recomendación de Implementación
+Para tu caso específico en Ubuntu, el flujo ideal sería:
+1. Usar **Ansible** para preparar Ubuntu e instanciar el cluster **Kind**.
+2. Instalar **ArgoCD** dentro de Kind para gestionar los despliegues.
+3. Desplegar **PostgreSQL** usando un manifest de `StatefulSet` (siguiendo patrones de Database Reliability) con persistencia en el host de Ubuntu vía `hostPath` o `local-path-provisioner`.
+
+> [!TIP]
+> Dado que Kind corre dentro de Docker, asegúrate de configurar correctamente los `extraPortMappings` en Kind si necesitas acceder a PostgreSQL directamente desde fuera del cluster (ej. desde una herramienta de escritorio).
+ config management
 
 #### 🌍 Multi-región/Multi-cloud
 - **IaC**: Terraform + Crossplane

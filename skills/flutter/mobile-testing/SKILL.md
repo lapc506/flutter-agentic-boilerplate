@@ -1,4 +1,4 @@
-# 📱 Skill: Mobile Testing con Mobile MCP
+# 📱 Skill: Mobile Testing y Debugging con Flutter MCP
 
 ## 📋 Metadata
 
@@ -6,14 +6,16 @@
 |----------|-------|
 | **ID** | `flutter-mobile-testing` |
 | **Nivel** | 🔴 Avanzado |
-| **Versión** | 1.0.0 |
-| **Keywords** | `mobile-testing`, `integration-test`, `mobile-mcp`, `automation`, `ui-testing`, `device-testing`, `simulator`, `emulator` |
-| **Referencia** | [Mobile MCP](https://github.com/mobile-next/mobile-mcp) |
+| **Versión** | 1.1.0 |
+| **Keywords** | `mobile-testing`, `integration-test`, `flutter-mcp`, `dart-mcp`, `debugging`, `logic-analysis`, `widget-inspection`, `device-testing` |
+| **Referencia** | [Dart and Flutter MCP server](https://docs.flutter.dev/ai/mcp-server) \| [Mobile MCP](https://github.com/mobile-next/mobile-mcp) |
 
 ## 🔑 Keywords para Invocación
 
 - `mobile-testing`
 - `integration-test-mobile`
+- `flutter-mcp`
+- `dart-mcp`
 - `mobile-mcp`
 - `mobile-automation`
 - `ui-testing-mobile`
@@ -36,9 +38,7 @@ Automatiza pruebas en iOS simulator para la feature de productos
 @skill:mobile-testing - Prueba el flujo completo de checkout en Android emulator
 ```
 
-## 📖 Descripción
-
-Mobile Testing proporciona automatización de pruebas de integración para aplicaciones Flutter usando el servidor MCP de [Mobile Next](https://github.com/mobile-next/mobile-mcp). Permite ejecutar pruebas automatizadas en dispositivos reales, simuladores iOS y emuladores Android, automatizando interacciones de UI, validación de flujos completos y verificación de comportamiento en diferentes plataformas.
+Mobile Testing proporciona herramientas para la automatización de pruebas de integración y debugging avanzado usando el servidor oficial de **Dart and Flutter MCP** y el servidor de [Mobile Next](https://github.com/mobile-next/mobile-mcp). Permite no solo ejecutar pruebas en dispositivos reales y simuladores, sino también inspeccionar el árbol de widgets en tiempo real, analizar errores de layout (como el RenderFlex overflow) y gestionar dependencias de forma inteligente.
 
 **⚠️ IMPORTANTE:** Todos los comandos de este skill deben ejecutarse desde la **raíz del proyecto** (donde existe el directorio `mobile/`). El skill incluye verificaciones para asegurar que se está en el directorio correcto antes de ejecutar cualquier comando.
 
@@ -119,17 +119,28 @@ dev_dependencies:
 
 ### 2. Configuración del MCP Server
 
-El servidor `mobile-mcp` debe estar configurado en `mcp.json`:
+Es altamente recomendado configurar el servidor oficial de Flutter para debugging profundo, además de `mobile-mcp` para interacciones de bajo nivel:
 
+#### Configuración de Dart/Flutter MCP (Recomendado para Debugging)
+```json
+{
+  "mcpServers": {
+    "dart-mcp-server": {
+      "command": "dart",
+      "args": ["mcp-server"],
+      "env": {}
+    }
+  }
+}
+```
+
+#### Configuración de Mobile MCP (Para Interacción con Hardware/SO)
 ```json
 {
   "mcpServers": {
     "mobile-mcp": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@mobilenext/mobile-mcp@latest"
-      ],
+      "args": ["-y", "@mobilenext/mobile-mcp@latest"],
       "env": {}
     }
   }
