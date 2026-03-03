@@ -48,11 +48,11 @@ log_error() {
 # Full backup (daily)
 backup_full() {
     log_info "Starting full backup..."
-    
+
     DATE=$(date +%Y%m%d)
     BACKUP_PATH="$BACKUP_DIR/full/$DATE"
     mkdir -p "$BACKUP_PATH"
-    
+
     log_info "Backing up database..."
     # Database backup
     if command -v pg_dump &> /dev/null; then
@@ -61,7 +61,7 @@ backup_full() {
     else
         log_warn "pg_dump not found, skipping database backup"
     fi
-    
+
     log_info "Backing up application data..."
     # Application data backup
     if [ -d "$APP_DATA_DIR" ]; then
@@ -70,7 +70,7 @@ backup_full() {
     else
         log_warn "Application data directory not found: $APP_DATA_DIR"
     fi
-    
+
     # Upload to S3 if configured
     if [ -n "$S3_BUCKET" ] && command -v aws &> /dev/null; then
         log_info "Uploading to S3: s3://$S3_BUCKET/backups/full/$DATE/"
@@ -82,22 +82,22 @@ backup_full() {
     else
         log_warn "S3 upload skipped (S3_BUCKET not set or aws CLI not available)"
     fi
-    
+
     # Verify backup
     verify_backup "$BACKUP_PATH"
-    
+
     log_info "Full backup completed: $BACKUP_PATH"
 }
 
 # Incremental backup (hourly)
 backup_incremental() {
     log_info "Starting incremental backup..."
-    
+
     DATE=$(date +%Y%m%d)
     TIME=$(date +%H%M)
     BACKUP_PATH="$BACKUP_DIR/incremental/$DATE/$TIME"
     mkdir -p "$BACKUP_PATH"
-    
+
     log_info "Creating incremental database backup..."
     # WAL archive for PostgreSQL
     if command -v pg_basebackup &> /dev/null; then
@@ -110,7 +110,7 @@ backup_incremental() {
         log_warn "pg_basebackup not found, skipping incremental backup"
         return 1
     fi
-    
+
     # Upload to S3 if configured
     if [ -n "$S3_BUCKET" ] && command -v aws &> /dev/null; then
         log_info "Uploading to S3: s3://$S3_BUCKET/backups/incremental/$DATE/$TIME/"
@@ -122,40 +122,40 @@ backup_incremental() {
     else
         log_warn "S3 upload skipped"
     fi
-    
+
     log_info "Incremental backup completed: $BACKUP_PATH"
 }
 
 # Cleanup old backups
 cleanup_backups() {
     log_info "Cleaning up old backups (retention: $RETENTION_DAYS days)..."
-    
+
     # Cleanup full backups
     if [ -d "$BACKUP_DIR/full" ]; then
         DELETED_FULL=$(find "$BACKUP_DIR/full" -type d -mtime +$RETENTION_DAYS -print -exec rm -rf {} \; | wc -l)
         log_info "Deleted $DELETED_FULL old full backup(s)"
     fi
-    
+
     # Cleanup incremental backups (keep last 7 days)
     if [ -d "$BACKUP_DIR/incremental" ]; then
         DELETED_INC=$(find "$BACKUP_DIR/incremental" -type d -mtime +7 -print -exec rm -rf {} \; | wc -l)
         log_info "Deleted $DELETED_INC old incremental backup(s)"
     fi
-    
+
     log_info "Cleanup completed"
 }
 
 # Verify backup
 verify_backup() {
     local BACKUP_PATH=$1
-    
+
     log_info "Verifying backup: $BACKUP_PATH"
-    
+
     if [ ! -d "$BACKUP_PATH" ]; then
         log_error "Backup path does not exist: $BACKUP_PATH"
         return 1
     fi
-    
+
     # Check database backup
     if [ -f "$BACKUP_PATH/db.sql.gz" ]; then
         if gzip -t "$BACKUP_PATH/db.sql.gz" 2>/dev/null; then
@@ -167,7 +167,7 @@ verify_backup() {
     else
         log_warn "Database backup file not found"
     fi
-    
+
     # Check application data backup
     if [ -f "$BACKUP_PATH/app-data.tar.gz" ]; then
         if tar -tzf "$BACKUP_PATH/app-data.tar.gz" > /dev/null 2>&1; then
@@ -179,7 +179,7 @@ verify_backup() {
     else
         log_warn "Application data backup file not found"
     fi
-    
+
     log_info "Backup verification completed: OK"
     return 0
 }
@@ -187,7 +187,7 @@ verify_backup() {
 # List backups
 list_backups() {
     log_info "Listing available backups..."
-    
+
     echo ""
     echo "Full backups:"
     if [ -d "$BACKUP_DIR/full" ]; then
@@ -195,7 +195,7 @@ list_backups() {
     else
         echo "  No full backups directory"
     fi
-    
+
     echo ""
     echo "Incremental backups:"
     if [ -d "$BACKUP_DIR/incremental" ]; then
@@ -252,4 +252,3 @@ main() {
 }
 
 main "$@"
-

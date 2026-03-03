@@ -1,9 +1,9 @@
 /**
  * k6 Stress Test
- * 
+ *
  * Stress test to find system breaking points.
  * Gradually increases load beyond normal capacity.
- * 
+ *
  * Usage:
  *   k6 run stress-test.js
  *   k6 run stress-test.js --env BASE_URL=https://api.example.com
@@ -32,11 +32,10 @@ export const options = {
 
 export default function () {
   const baseUrl = __ENV.BASE_URL || 'https://api.example.com';
-  
+
   const response = http.get(`${baseUrl}/api/v1/data`);
-  
+
   check(response, {
     'status is 200': (r) => r.status === 200,
   });
 }
-

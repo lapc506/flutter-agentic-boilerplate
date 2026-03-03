@@ -77,4 +77,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Experiment design
 - Resilience testing strategies
 - Best practices
-

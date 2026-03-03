@@ -1,8 +1,8 @@
 /**
  * Example User Service with Custom Spans
- * 
+ *
  * Example service demonstrating custom spans and tracing.
- * 
+ *
  * Usage:
  *   const { getUserById } = require('./userService');
  *   const user = await getUserById('123');
@@ -15,7 +15,7 @@ const tracer = trace.getTracer('user-service');
 
 /**
  * Get user by ID with custom span.
- * 
+ *
  * @param {string} userId - User ID
  * @returns {Promise<Object>} User object
  */
@@ -29,13 +29,13 @@ async function getUserById(userId) {
 
   try {
     span.addEvent('Fetching user from database');
-    
+
     // Simulate database query
     const user = await fetchUserFromDatabase(userId);
-    
+
     span.setAttribute('user.found', !!user);
     span.setStatus({ code: SpanStatusCode.OK });
-    
+
     return user;
   } catch (error) {
     span.setStatus({
@@ -51,7 +51,7 @@ async function getUserById(userId) {
 
 /**
  * Simulated database query.
- * 
+ *
  * @param {string} userId - User ID
  * @returns {Promise<Object>} User object
  */
@@ -71,4 +71,3 @@ async function fetchUserFromDatabase(userId) {
 module.exports = {
   getUserById,
 };
-

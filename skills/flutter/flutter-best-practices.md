@@ -714,7 +714,7 @@ final GoRouter _router = GoRouter(
 // Uso en MaterialApp
 MaterialApp.router(
   routerConfig: _router,
-  title: 'AltruPets',
+  title: '{{PROJECT_NAME}}',
 )
 ```
 

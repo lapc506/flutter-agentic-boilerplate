@@ -7,10 +7,10 @@ Automates full backups, restoration, and cleanup for PostgreSQL databases.
 Usage:
     # Create full backup
     python postgresql_backup.py backup --host localhost --user backup_user --dbname mydb
-    
+
     # Restore from backup
     python postgresql_backup.py restore --backup-path /backup/full_20240115_120000 --target-dir /var/lib/postgresql/data
-    
+
     # Cleanup old backups
     python postgresql_backup.py cleanup --backup-dir /backup --retention-days 30
 """
@@ -27,13 +27,13 @@ from typing import Optional
 class PostgreSQLBackup:
     """
     PostgreSQL backup and restore automation.
-    
+
     Handles:
     - Full database backups using pg_basebackup
     - Restore from backups
     - Cleanup of old backups based on retention policy
     """
-    
+
     def __init__(
         self,
         host: str = "localhost",
@@ -44,7 +44,7 @@ class PostgreSQLBackup:
     ):
         """
         Initialize PostgreSQL backup manager.
-        
+
         Args:
             host: PostgreSQL host
             port: PostgreSQL port
@@ -62,13 +62,13 @@ class PostgreSQLBackup:
     def full_backup(self, verify: bool = True) -> str:
         """
         Create full physical backup using pg_basebackup.
-        
+
         Args:
             verify: Whether to verify backup after creation
-            
+
         Returns:
             Path to backup directory
-            
+
         Raises:
             Exception: If backup fails
         """
@@ -77,7 +77,7 @@ class PostgreSQLBackup:
         backup_path.mkdir(parents=True, exist_ok=True)
 
         print(f"Creating full backup to {backup_path}...")
-        
+
         cmd = [
             "pg_basebackup",
             "-h", self.host,
@@ -98,12 +98,12 @@ class PostgreSQLBackup:
                 check=True
             )
             print(f"✅ Backup created successfully: {backup_path}")
-            
+
             if verify:
                 self.verify_backup(backup_path)
-            
+
             return str(backup_path)
-            
+
         except subprocess.CalledProcessError as e:
             raise Exception(f"Backup failed: {e.stderr}") from e
         except FileNotFoundError:
@@ -112,15 +112,15 @@ class PostgreSQLBackup:
     def verify_backup(self, backup_path: str):
         """
         Verify backup integrity using pg_verifybackup.
-        
+
         Args:
             backup_path: Path to backup directory
-            
+
         Raises:
             Exception: If verification fails
         """
         print(f"Verifying backup: {backup_path}...")
-        
+
         try:
             result = subprocess.run(
                 ["pg_verifybackup", "-D", backup_path],
@@ -129,7 +129,7 @@ class PostgreSQLBackup:
                 check=True
             )
             print("✅ Backup verification passed")
-            
+
         except subprocess.CalledProcessError as e:
             raise Exception(f"Backup verification failed: {e.stderr}") from e
         except FileNotFoundError:
@@ -144,24 +144,24 @@ class PostgreSQLBackup:
     ):
         """
         Restore database from backup.
-        
+
         Args:
             backup_path: Path to backup directory
             target_dir: Target PostgreSQL data directory
             stop_service: Whether to stop PostgreSQL service before restore
             start_service: Whether to start PostgreSQL service after restore
-            
+
         Raises:
             Exception: If restore fails
         """
         backup_path = Path(backup_path)
         target_dir = Path(target_dir)
-        
+
         if not backup_path.exists():
             raise Exception(f"Backup path does not exist: {backup_path}")
-        
+
         print(f"Restoring from {backup_path} to {target_dir}...")
-        
+
         # Stop PostgreSQL
         if stop_service:
             print("Stopping PostgreSQL service...")
@@ -181,14 +181,14 @@ class PostgreSQLBackup:
             print(f"Removing old data directory: {target_dir}")
             import shutil
             shutil.rmtree(target_dir)
-        
+
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # Extract backup
         base_tar = backup_path / "base.tar.gz"
         if not base_tar.exists():
             raise Exception(f"Backup file not found: {base_tar}")
-        
+
         print(f"Extracting backup from {base_tar}...")
         try:
             subprocess.run(
@@ -218,26 +218,26 @@ class PostgreSQLBackup:
     def cleanup_old_backups(self, retention_days: int = 30, dry_run: bool = False):
         """
         Remove backups older than retention period.
-        
+
         Args:
             retention_days: Number of days to retain backups
             dry_run: If True, only show what would be deleted
-            
+
         Returns:
             Number of backups removed
         """
         cutoff = datetime.now() - timedelta(days=retention_days)
         removed_count = 0
-        
+
         print(f"Cleaning up backups older than {retention_days} days (before {cutoff.date()})...")
-        
+
         for backup in sorted(self.backup_dir.glob("full_*")):
             if backup.is_dir():
                 try:
                     # Parse timestamp from directory name
                     timestamp_str = backup.name.replace("full_", "")
                     backup_time = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
-                    
+
                     if backup_time < cutoff:
                         if dry_run:
                             print(f"Would remove: {backup} (created {backup_time.date()})")
@@ -249,18 +249,18 @@ class PostgreSQLBackup:
                 except ValueError:
                     # Skip directories that don't match expected format
                     continue
-        
+
         if dry_run:
             print(f"Dry run: Would remove {removed_count} backup(s)")
         else:
             print(f"✅ Cleanup complete: Removed {removed_count} backup(s)")
-        
+
         return removed_count
 
     def list_backups(self):
         """List all available backups."""
         backups = []
-        
+
         for backup in sorted(self.backup_dir.glob("full_*")):
             if backup.is_dir():
                 try:
@@ -274,11 +274,11 @@ class PostgreSQLBackup:
                     })
                 except ValueError:
                     continue
-        
+
         if not backups:
             print("No backups found")
             return
-        
+
         print(f"\nFound {len(backups)} backup(s):\n")
         for backup in backups:
             size_mb = backup["size"] / (1024 * 1024)
@@ -292,9 +292,9 @@ def main():
         description="PostgreSQL backup and restore automation",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
-    
+
     # Backup command
     backup_parser = subparsers.add_parser("backup", help="Create full backup")
     backup_parser.add_argument("--host", default="localhost", help="PostgreSQL host")
@@ -303,30 +303,30 @@ def main():
     backup_parser.add_argument("--dbname", help="Database name (optional)")
     backup_parser.add_argument("--backup-dir", default="/backup/postgresql", help="Backup directory")
     backup_parser.add_argument("--no-verify", action="store_true", help="Skip backup verification")
-    
+
     # Restore command
     restore_parser = subparsers.add_parser("restore", help="Restore from backup")
     restore_parser.add_argument("--backup-path", required=True, help="Path to backup directory")
     restore_parser.add_argument("--target-dir", required=True, help="Target PostgreSQL data directory")
     restore_parser.add_argument("--no-stop", action="store_true", help="Don't stop PostgreSQL service")
     restore_parser.add_argument("--no-start", action="store_true", help="Don't start PostgreSQL service")
-    
+
     # Cleanup command
     cleanup_parser = subparsers.add_parser("cleanup", help="Cleanup old backups")
     cleanup_parser.add_argument("--backup-dir", default="/backup/postgresql", help="Backup directory")
     cleanup_parser.add_argument("--retention-days", type=int, default=30, help="Days to retain backups")
     cleanup_parser.add_argument("--dry-run", action="store_true", help="Show what would be deleted")
-    
+
     # List command
     list_parser = subparsers.add_parser("list", help="List available backups")
     list_parser.add_argument("--backup-dir", default="/backup/postgresql", help="Backup directory")
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         return 1
-    
+
     try:
         if args.command == "backup":
             backup = PostgreSQLBackup(
@@ -337,7 +337,7 @@ def main():
                 backup_dir=args.backup_dir
             )
             backup.full_backup(verify=not args.no_verify)
-            
+
         elif args.command == "restore":
             backup = PostgreSQLBackup(backup_dir=os.path.dirname(args.backup_path))
             backup.restore(
@@ -346,20 +346,20 @@ def main():
                 stop_service=not args.no_stop,
                 start_service=not args.no_start
             )
-            
+
         elif args.command == "cleanup":
             backup = PostgreSQLBackup(backup_dir=args.backup_dir)
             backup.cleanup_old_backups(
                 retention_days=args.retention_days,
                 dry_run=args.dry_run
             )
-            
+
         elif args.command == "list":
             backup = PostgreSQLBackup(backup_dir=args.backup_dir)
             backup.list_backups()
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
@@ -367,4 +367,3 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
-

@@ -2,4 +2,3 @@
 
 # Network Policy Manager
 kubernetes>=28.1.0
-

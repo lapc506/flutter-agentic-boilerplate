@@ -361,7 +361,7 @@ class MixpanelService {
   static void setUserProperties(Map<String, dynamic> properties) {
     _mixpanel?.getPeople().set('\$name', properties['name']);
     _mixpanel?.getPeople().set('\$email', properties['email']);
-    
+
     properties.forEach((key, value) {
       if (key != 'name' && key != 'email') {
         _mixpanel?.getPeople().set(key, value);
@@ -442,7 +442,7 @@ class AmplitudeService {
 
   static Future<void> initialize(String apiKey) async {
     await _amplitude.init(apiKey);
-    
+
     // Enable tracking
     await _amplitude.enableCoppaControl();
     await _amplitude.trackingSessionEvents(true);
@@ -456,7 +456,7 @@ class AmplitudeService {
   // Set user properties
   static Future<void> setUserProperties(Map<String, dynamic> properties) async {
     final identify = Identify();
-    
+
     properties.forEach((key, value) {
       if (value is String) {
         identify.set(key, value);
@@ -470,7 +470,7 @@ class AmplitudeService {
         identify.set(key, value);
       }
     });
-    
+
     await _amplitude.identify(identify);
   }
 
@@ -855,7 +855,6 @@ if (kDebugMode) {
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

@@ -313,14 +313,14 @@ class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final ButtonVariant variant;
-  
+
   const AppButton({
     Key? key,
     required this.label,
     this.onPressed,
     this.variant = ButtonVariant.primary,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -329,7 +329,7 @@ class AppButton extends StatelessWidget {
       child: Text(label),
     );
   }
-  
+
   ButtonStyle _getStyle() {
     switch (variant) {
       case ButtonVariant.primary:
@@ -395,6 +395,5 @@ Prompt: "Usando figma, extrae el componente ProductCard e impleméntalo con mvvm
 
 ---
 
-**Última actualización:** Diciembre 2025  
+**Última actualización:** Diciembre 2025
 **Versión:** 1.0.0
-

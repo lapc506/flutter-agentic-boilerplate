@@ -15,27 +15,26 @@ fn process_request(data: &str) -> String {
 
 fn benchmark_requests(c: &mut Criterion) {
     let mut group = c.benchmark_group("api_requests");
-    
+
     // Configure benchmark settings
     group.sample_size(100);
     group.measurement_time(std::time::Duration::from_secs(10));
-    
+
     group.bench_function("process_request", |b| {
         b.iter(|| {
             process_request(black_box("test_data"));
         });
     });
-    
+
     group.bench_function("process_request_large", |b| {
         let large_data = "x".repeat(10000);
         b.iter(|| {
             process_request(black_box(&large_data));
         });
     });
-    
+
     group.finish();
 }
 
 criterion_group!(benches, benchmark_requests);
 criterion_main!(benches);
-

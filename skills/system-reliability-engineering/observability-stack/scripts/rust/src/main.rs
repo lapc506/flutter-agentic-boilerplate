@@ -26,11 +26,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Example usage
     let user_service = UserService;
     let user = user_service.get_user_by_id("123".to_string()).await?;
-    
+
     info!(user_id = %user.id, "User fetched successfully");
 
     // Your application code here
 
     Ok(())
 }
-

@@ -142,7 +142,7 @@ class FCMService {
   static Future<void> initialize() async {
     // Request permission (iOS)
     final settings = await _requestPermission();
-    
+
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('✅ User granted permission');
     } else {
@@ -296,7 +296,7 @@ class LocalNotificationsService {
   static void _onNotificationTapped(NotificationResponse response) {
     print('📱 Notification tapped: ${response.id}');
     print('Payload: ${response.payload}');
-    
+
     if (response.payload != null) {
       // Navigate based on payload
       NotificationHandler.handleLocalNotificationTap(response.payload!);
@@ -804,7 +804,6 @@ print('Permission: ${settings.authorizationStatus}');
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

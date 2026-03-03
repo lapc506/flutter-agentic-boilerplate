@@ -81,13 +81,13 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # State management para temas
   flutter_bloc: ^8.1.3
-  
+
   # Persistencia de preferencias
   shared_preferences: ^2.2.2
-  
+
   # Google Fonts (opcional)
   google_fonts: ^6.1.0
 
@@ -324,46 +324,46 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         primaryContainer: AppColors.primaryContainer,
         onPrimary: AppColors.onPrimary,
         onPrimaryContainer: AppColors.onPrimaryContainer,
-        
+
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryContainer,
         onSecondary: AppColors.onSecondary,
         onSecondaryContainer: AppColors.onSecondaryContainer,
-        
+
         tertiary: AppColors.tertiary,
         tertiaryContainer: AppColors.tertiaryContainer,
         onTertiary: AppColors.onTertiary,
         onTertiaryContainer: AppColors.onTertiaryContainer,
-        
+
         error: AppColors.error,
         errorContainer: AppColors.errorContainer,
         onError: AppColors.onError,
         onErrorContainer: AppColors.onErrorContainer,
-        
+
         surface: AppColors.surface,
         onSurface: AppColors.onBackground,
-        
+
         outline: AppColors.outline,
         outlineVariant: AppColors.outlineVariant,
-        
+
         inverseSurface: AppColors.inverseSurface,
         onInverseSurface: AppColors.inverseOnSurface,
         inversePrimary: AppColors.inversePrimary,
-        
+
         shadow: AppColors.shadow,
         scrim: AppColors.scrim,
       ),
-      
+
       // Typography
       textTheme: AppTypography.textTheme,
-      
+
       // AppBar Theme
       appBarTheme: AppBarTheme(
         centerTitle: false,
@@ -372,7 +372,7 @@ class AppTheme {
         foregroundColor: AppColors.onBackground,
         titleTextStyle: AppTypography.textTheme.titleLarge,
       ),
-      
+
       // Card Theme
       cardTheme: CardTheme(
         elevation: 1,
@@ -381,7 +381,7 @@ class AppTheme {
         ),
         color: AppColors.surfaceContainer,
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -407,7 +407,7 @@ class AppTheme {
           vertical: 16,
         ),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -424,7 +424,7 @@ class AppTheme {
           textStyle: AppTypography.textTheme.labelLarge,
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -439,7 +439,7 @@ class AppTheme {
           textStyle: AppTypography.textTheme.labelLarge,
         ),
       ),
-      
+
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -455,7 +455,7 @@ class AppTheme {
           textStyle: AppTypography.textTheme.labelLarge,
         ),
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primaryContainer,
@@ -465,7 +465,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
@@ -474,7 +474,7 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 3,
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceContainerHighest,
@@ -484,7 +484,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      
+
       // Dialog Theme
       dialogTheme: DialogTheme(
         backgroundColor: AppColors.surface,
@@ -495,7 +495,7 @@ class AppTheme {
         titleTextStyle: AppTypography.textTheme.headlineSmall,
         contentTextStyle: AppTypography.textTheme.bodyMedium,
       ),
-      
+
       // Divider Theme
       dividerTheme: DividerThemeData(
         color: AppColors.outlineVariant,
@@ -510,44 +510,44 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       colorScheme: const ColorScheme.dark(
         primary: AppColorsDark.primary,
         primaryContainer: AppColorsDark.primaryContainer,
         onPrimary: AppColorsDark.onPrimary,
         onPrimaryContainer: AppColorsDark.onPrimaryContainer,
-        
+
         secondary: AppColorsDark.secondary,
         secondaryContainer: AppColorsDark.secondaryContainer,
         onSecondary: AppColorsDark.onSecondary,
         onSecondaryContainer: AppColorsDark.onSecondaryContainer,
-        
+
         tertiary: AppColorsDark.tertiary,
         tertiaryContainer: AppColorsDark.tertiaryContainer,
         onTertiary: AppColorsDark.onTertiary,
         onTertiaryContainer: AppColorsDark.onTertiaryContainer,
-        
+
         error: AppColorsDark.error,
         errorContainer: AppColorsDark.errorContainer,
         onError: AppColorsDark.onError,
         onErrorContainer: AppColorsDark.onErrorContainer,
-        
+
         surface: AppColorsDark.surface,
         onSurface: AppColorsDark.onBackground,
-        
+
         outline: AppColorsDark.outline,
         outlineVariant: AppColorsDark.outlineVariant,
-        
+
         inverseSurface: AppColorsDark.inverseSurface,
         onInverseSurface: AppColorsDark.inverseOnSurface,
         inversePrimary: AppColorsDark.inversePrimary,
-        
+
         shadow: AppColorsDark.shadow,
         scrim: AppColorsDark.scrim,
       ),
-      
+
       textTheme: AppTypography.textTheme,
-      
+
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
@@ -555,7 +555,7 @@ class AppTheme {
         foregroundColor: AppColorsDark.onBackground,
         titleTextStyle: AppTypography.textTheme.titleLarge,
       ),
-      
+
       // Otros componentes similares al light theme
     );
   }
@@ -649,15 +649,15 @@ import 'core/theme/theme_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
-  
+
   runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
-  
+
   const MyApp({super.key, required this.prefs});
 
   @override
@@ -828,6 +828,5 @@ Container(
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

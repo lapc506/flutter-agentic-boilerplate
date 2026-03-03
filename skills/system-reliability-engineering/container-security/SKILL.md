@@ -76,7 +76,7 @@ Orchestration Security
 > **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
 > - **Image Signing:** [`scripts/sign-image.sh`](scripts/sign-image.sh) - Firmar imágenes con Notary (Bash)
 > - **Admission Controller:** [`scripts/admission_controller.py`](scripts/admission_controller.py) - Validación de seguridad de pods (Python CLI)
-> 
+>
 > Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
 
 ### 1. Image Scanning
@@ -135,19 +135,19 @@ data:
     rules_file:
       - /etc/falco/falco_rules.yaml
       - /etc/falco/rules.d/
-    
+
     json_output: true
     json_include_output_property: true
     json_include_tags_property: true
-    
+
     log_stderr: true
     log_syslog: false
     log_level: info
-    
+
     http_output:
       enabled: true
       url: http://falco-sidekick:2801
-    
+
     webserver:
       enabled: true
       listen_port: 8765
@@ -416,7 +416,6 @@ python scripts/admission_controller.py validate --deployment-spec deployment.jso
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

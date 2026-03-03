@@ -1,8 +1,8 @@
 /**
  * Node.js Performance Profiler
- * 
+ *
  * CPU profiling for Node.js applications using v8-profiler.
- * 
+ *
  * Usage:
  *   node performance-profiler.js
  *   node performance-profiler.js --profile-name my-profile
@@ -36,15 +36,15 @@ class PerformanceProfiler {
     const profile = profiler.stopProfiling(name);
     const data = profile.export();
     profile.delete();
-    
+
     const filename = `${name}-${Date.now()}.cpuprofile`;
     const filepath = path.join(process.cwd(), filename);
-    
+
     fs.writeFileSync(filepath, JSON.stringify(data));
-    
+
     const duration = Date.now() - this.activeProfiles.get(name);
     this.activeProfiles.delete(name);
-    
+
     console.log(`Profile saved to ${filepath} (duration: ${duration}ms)`);
     return filepath;
   }
@@ -66,13 +66,13 @@ class PerformanceProfiler {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const profiler = new PerformanceProfiler();
-  
+
   const profileName = args.find(arg => arg.startsWith('--profile-name'))?.split('=')[1] || 'profile';
   const duration = parseInt(args.find(arg => arg.startsWith('--duration'))?.split('=')[1] || '30') * 1000;
-  
+
   console.log(`Starting profile: ${profileName} for ${duration}ms`);
   profiler.startProfiling(profileName);
-  
+
   setTimeout(() => {
     profiler.stopProfiling(profileName);
     process.exit(0);
@@ -80,4 +80,3 @@ if (require.main === module) {
 }
 
 module.exports = PerformanceProfiler;
-

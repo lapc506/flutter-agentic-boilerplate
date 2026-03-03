@@ -44,10 +44,10 @@ check_flutter() {
         print_info "Por favor, instala Flutter desde: https://flutter.dev/docs/get-started/install"
         exit 1
     fi
-    
+
     FLUTTER_VERSION=$(flutter --version | head -n 1)
     print_success "Flutter encontrado: $FLUTTER_VERSION"
-    
+
     # Verificar que Flutter esté configurado correctamente
     print_info "Verificando configuración de Flutter..."
     if ! flutter doctor &> /dev/null; then
@@ -67,27 +67,27 @@ get_project_name() {
 # Obtener el nombre del paquete de la aplicación
 get_package_name() {
     print_info "El nombre del paquete identifica tu aplicación de forma única (ej: com.miempresa.miapp)"
-    
+
     # Generar nombre por defecto basado en el nombre del proyecto
     DEFAULT_PACKAGE=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr '_' '' | tr '-' '')
     DEFAULT_PACKAGE="com.example.${DEFAULT_PACKAGE}"
-    
+
     read -p "Ingresa el nombre del paquete (default: $DEFAULT_PACKAGE): " PACKAGE_NAME
     PACKAGE_NAME=${PACKAGE_NAME:-$DEFAULT_PACKAGE}
-    
+
     # Validar formato básico del nombre del paquete
     if ! echo "$PACKAGE_NAME" | grep -qE '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$'; then
         print_warning "El nombre del paquete debe seguir el formato: com.ejemplo.miapp (solo letras minúsculas, números y puntos)"
         print_info "Usando nombre por defecto: $PACKAGE_NAME"
     fi
-    
+
     print_info "Nombre del paquete: $PACKAGE_NAME"
 }
 
 # Crear estructura de directorios
 create_structure() {
     print_info "Creando estructura de monorepo..."
-    
+
     # Crear directorio backend si no existe
     if [ ! -d "backend" ]; then
         mkdir -p backend
@@ -95,7 +95,7 @@ create_structure() {
     else
         print_warning "El directorio 'backend' ya existe"
     fi
-    
+
     # Crear directorio mobile si no existe
     if [ ! -d "mobile" ]; then
         mkdir -p mobile
@@ -113,9 +113,9 @@ create_structure() {
 # Crear proyecto Flutter
 create_flutter_project() {
     print_info "Creando proyecto Flutter en 'mobile/'..."
-    
+
     cd mobile
-    
+
     # Verificar si ya existe un proyecto Flutter
     if [ -f "pubspec.yaml" ]; then
         print_warning "Ya existe un proyecto Flutter en 'mobile/'"
@@ -129,11 +129,11 @@ create_flutter_project() {
         print_info "Limpiando directorio mobile..."
         find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
     fi
-    
+
     # Crear proyecto Flutter
     print_info "Ejecutando 'flutter create .'..."
     flutter create . --project-name "$PROJECT_NAME" --org com.example
-    
+
     print_success "Proyecto Flutter creado exitosamente"
     cd ..
 }
@@ -142,7 +142,7 @@ create_flutter_project() {
 install_dependencies() {
     print_info "Instalando dependencias de Flutter..."
     cd mobile
-    
+
     # Agregar change_app_package_name como dev_dependency
     print_info "Agregando change_app_package_name como dependencia de desarrollo..."
     if ! flutter pub add -d change_app_package_name; then
@@ -150,7 +150,7 @@ install_dependencies() {
         cd ..
         exit 1
     fi
-    
+
     if flutter pub get; then
         print_success "Dependencias instaladas correctamente"
     else
@@ -158,7 +158,7 @@ install_dependencies() {
         cd ..
         exit 1
     fi
-    
+
     cd ..
 }
 
@@ -166,7 +166,7 @@ install_dependencies() {
 change_package_name() {
     print_info "Cambiando el nombre del paquete a: $PACKAGE_NAME..."
     cd mobile
-    
+
     # Ejecutar el comando para cambiar el nombre del paquete
     print_info "Ejecutando change_app_package_name..."
     if dart run change_app_package_name:main "$PACKAGE_NAME"; then
@@ -175,7 +175,7 @@ change_package_name() {
         print_warning "Hubo un problema al cambiar el nombre del paquete. Verifica manualmente."
         print_info "Puedes cambiarlo manualmente más tarde usando: dart run change_app_package_name:main $PACKAGE_NAME"
     fi
-    
+
     cd ..
 }
 
@@ -183,11 +183,11 @@ change_package_name() {
 create_config_files() {
     print_info "Creando archivos de configuración..."
     cd mobile
-    
+
     # Crear directorio de assets si no existe
     mkdir -p assets/icon
     mkdir -p assets/splash
-    
+
     # Crear .env-sample si no existe
     if [ ! -f ".env-sample" ]; then
         cat > .env-sample << EOF
@@ -209,7 +209,7 @@ API_TIMEOUT=30000
 EOF
         print_success "Archivo .env-sample creado"
     fi
-    
+
     # Crear .gitignore si no existe o actualizar
     if [ ! -f ".gitignore" ]; then
         cat > .gitignore << EOF
@@ -247,7 +247,7 @@ Thumbs.db
 EOF
         print_success "Archivo .gitignore creado"
     fi
-    
+
     cd ..
 }
 
@@ -255,7 +255,7 @@ EOF
 create_mobile_readme() {
     print_info "Creando README para mobile..."
     cd mobile
-    
+
     if [ ! -f "README.md" ]; then
         cat > README.md << EOF
 # $PROJECT_NAME
@@ -289,7 +289,7 @@ flutter build ios --release
 EOF
         print_success "README.md creado para mobile"
     fi
-    
+
     cd ..
 }
 
@@ -323,7 +323,7 @@ main() {
     echo "  Flutter Boilerplate Setup Script"
     echo "=========================================="
     echo ""
-    
+
     check_flutter
     get_project_name
     get_package_name
@@ -338,4 +338,3 @@ main() {
 
 # Ejecutar script principal
 main
-

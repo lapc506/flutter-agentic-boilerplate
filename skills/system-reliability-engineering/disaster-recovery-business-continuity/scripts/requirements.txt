@@ -8,4 +8,3 @@
 # - aws CLI (for AWS operations)
 # - curl (for health checks)
 # - PostgreSQL tools (pg_dump, pg_basebackup) for database backups
-

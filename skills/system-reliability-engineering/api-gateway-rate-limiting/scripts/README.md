@@ -89,4 +89,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Configuración de Nginx
 - Estrategias de rate limiting
 - Mejores prácticas
-

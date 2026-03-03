@@ -4,7 +4,7 @@
 //!
 //! Usage:
 //!     use crate::telemetry::init_tracer;
-//!     
+//!
 //!     init_tracer("my-service", "1.0.0", "production")?;
 
 use opentelemetry::global;
@@ -79,4 +79,3 @@ pub fn init_tracer(
 pub fn shutdown() {
     global::shutdown_tracer_provider();
 }
-

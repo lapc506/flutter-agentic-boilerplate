@@ -100,26 +100,26 @@ jobs:
     defaults:
       run:
         working-directory: mobile
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
           cache: true
-      
+
       - name: Get dependencies
         run: flutter pub get
-      
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
-      
+
       - name: Analyze code
         run: flutter analyze --fatal-infos
-      
+
       - name: Run custom lints
         run: dart run custom_lint
 
@@ -128,23 +128,23 @@ jobs:
     defaults:
       run:
         working-directory: mobile
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
           cache: true
-      
+
       - name: Get dependencies
         run: flutter pub get
-      
+
       - name: Run tests with coverage
         run: flutter test --coverage --reporter expanded
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -158,40 +158,40 @@ jobs:
     defaults:
       run:
         working-directory: mobile
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
           cache: 'gradle'
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
           cache: true
-      
+
       - name: Get dependencies
         run: flutter pub get
-      
+
       - name: Build APK
         run: flutter build apk --release
-      
+
       - name: Build App Bundle
         run: flutter build appbundle --release
-      
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
-      
+
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
@@ -205,23 +205,23 @@ jobs:
     defaults:
       run:
         working-directory: mobile
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
           cache: true
-      
+
       - name: Get dependencies
         run: flutter pub get
-      
+
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
-      
+
       - name: Upload iOS build
         uses: actions/upload-artifact@v4
         with:
@@ -253,30 +253,30 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Lint code
         run: npm run lint
-      
+
       - name: Run tests
         run: npm test -- --coverage
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -287,13 +287,13 @@ jobs:
   docker-build:
     needs: lint-and-test
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
@@ -321,10 +321,10 @@ jobs:
       mobile: ${{ steps.filter.outputs.mobile }}
       backend: ${{ steps.filter.outputs.backend }}
       infrastructure: ${{ steps.filter.outputs.infrastructure }}
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -340,16 +340,16 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           cache: true
-      
+
       - name: Run mobile checks
         working-directory: mobile
         run: |
@@ -361,17 +361,17 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
-      
+
       - name: Run backend checks
         working-directory: backend
         run: |
@@ -383,19 +383,19 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.infrastructure == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.0
-      
+
       - name: Terraform Format
         working-directory: infrastructure
         run: terraform fmt -check
-      
+
       - name: Terraform Validate
         working-directory: infrastructure
         run: |
@@ -418,29 +418,29 @@ jobs:
   deploy-android:
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
-      
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/keystore.jks
         working-directory: mobile
-      
+
       - name: Create key.properties
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -454,20 +454,20 @@ jobs:
           storeFile=keystore.jks
           EOF
         working-directory: mobile
-      
+
       - name: Get dependencies
         run: flutter pub get
         working-directory: mobile
-      
+
       - name: Build App Bundle
         run: flutter build appbundle --release
         working-directory: mobile
-      
+
       - name: Setup Play Store credentials
         env:
           PLAY_STORE_CREDENTIALS: ${{ secrets.PLAY_STORE_CREDENTIALS }}
         run: echo "$PLAY_STORE_CREDENTIALS" > play-store-credentials.json
-      
+
       - name: Deploy to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
@@ -480,27 +480,27 @@ jobs:
   deploy-ios:
     runs-on: macos-latest
     environment: production
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           channel: 'stable'
-      
+
       - name: Get dependencies
         run: flutter pub get
         working-directory: mobile
-      
+
       - name: Install CocoaPods
         run: gem install cocoapods
-      
+
       - name: Build iOS IPA
         run: flutter build ipa --release
         working-directory: mobile
-      
+
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
@@ -525,23 +525,23 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Extract version from tag
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/backend-v}" >> $GITHUB_OUTPUT
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -552,7 +552,7 @@ jobs:
             myorg/myapp-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       - name: Deploy to Kubernetes (via kubectl)
         env:
           KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG }}
@@ -588,22 +588,22 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ inputs.flutter-version }}
           cache: true
-      
+
       - name: Get dependencies
         run: flutter pub get
-      
+
       - name: Run tests
         run: flutter test --coverage
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -751,6 +751,5 @@ gh workflow run flutter-ci.yml
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

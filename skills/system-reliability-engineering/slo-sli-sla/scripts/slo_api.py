@@ -51,7 +51,7 @@ class ErrorBudgetResponse(SLOComplianceResponse):
 class SLOService:
     """
     Service for querying SLO compliance from Prometheus.
-    
+
     This service queries Prometheus metrics to calculate:
     - Current availability
     - SLO compliance status
@@ -59,11 +59,11 @@ class SLOService:
     - Burn rate
     - Time to exhaustion
     """
-    
+
     def __init__(self, prometheus_url: str = PROMETHEUS_URL):
         """
         Initialize SLO Service.
-        
+
         Args:
             prometheus_url: URL of Prometheus instance
         """
@@ -73,13 +73,13 @@ class SLOService:
     def _query_prometheus(self, query: str, start: datetime, end: datetime, step: str = "1h") -> list:
         """
         Query Prometheus range API.
-        
+
         Args:
             query: PromQL query
             start: Start time
             end: End time
             step: Query resolution step width
-            
+
         Returns:
             List of time series values
         """
@@ -89,26 +89,26 @@ class SLOService:
             "end": end.timestamp(),
             "step": step
         }
-        
+
         try:
             response = requests.get(f"{self.api_url}/query_range", params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
-            
+
             if data["status"] != "success":
                 raise ValueError(f"Prometheus query failed: {data.get('error', 'Unknown error')}")
-            
+
             result = data["data"]["result"]
             if not result:
                 return []
-            
+
             # Extract values from time series
             values = []
             for series in result:
                 values.extend([float(v[1]) for v in series["values"]])
-            
+
             return values
-            
+
         except requests.exceptions.RequestException as e:
             raise HTTPException(
                 status_code=503,
@@ -118,29 +118,29 @@ class SLOService:
     def _query_prometheus_instant(self, query: str) -> float:
         """
         Query Prometheus instant API.
-        
+
         Args:
             query: PromQL query
-            
+
         Returns:
             Single value result
         """
         params = {"query": query}
-        
+
         try:
             response = requests.get(f"{self.api_url}/query", params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
-            
+
             if data["status"] != "success":
                 raise ValueError(f"Prometheus query failed: {data.get('error', 'Unknown error')}")
-            
+
             result = data["data"]["result"]
             if not result:
                 return 0.0
-            
+
             return float(result[0]["value"][1])
-            
+
         except requests.exceptions.RequestException as e:
             raise HTTPException(
                 status_code=503,
@@ -155,12 +155,12 @@ class SLOService:
     ) -> SLOComplianceResponse:
         """
         Get SLO compliance status for a service.
-        
+
         Args:
             service: Service name
             slo_target: SLO target as decimal (e.g., 0.9995)
             window_days: Evaluation window in days
-            
+
         Returns:
             SLOComplianceResponse with compliance status
         """
@@ -209,12 +209,12 @@ class SLOService:
     ) -> ErrorBudgetResponse:
         """
         Get detailed error budget status.
-        
+
         Args:
             service: Service name
             slo_target: SLO target as decimal
             window_days: Evaluation window in days
-            
+
         Returns:
             ErrorBudgetResponse with detailed budget status
         """
@@ -250,11 +250,11 @@ class SLOService:
     def _get_budget_status(self, remaining: float, burn_rate: float) -> str:
         """
         Get budget status based on remaining budget and burn rate.
-        
+
         Args:
             remaining: Remaining budget (0-1)
             burn_rate: Daily burn rate (1x = normal)
-            
+
         Returns:
             Status string
         """
@@ -297,7 +297,7 @@ async def health():
         prometheus_healthy = response.status_code == 200
     except:
         prometheus_healthy = False
-    
+
     return {
         "status": "healthy" if prometheus_healthy else "degraded",
         "prometheus_connected": prometheus_healthy,
@@ -313,12 +313,12 @@ async def get_compliance(
 ):
     """
     Get SLO compliance status for a service.
-    
+
     Args:
         service: Service name
         slo_target: SLO target (default: 0.9995 = 99.95%%)
         window_days: Evaluation window (default: 30 days)
-        
+
     Returns:
         SLO compliance status
     """
@@ -333,12 +333,12 @@ async def get_error_budget(
 ):
     """
     Get detailed error budget status for a service.
-    
+
     Args:
         service: Service name
         slo_target: SLO target (default: 0.9995 = 99.95%%)
         window_days: Evaluation window (default: 30 days)
-        
+
     Returns:
         Detailed error budget status including burn rate and time to exhaustion
     """
@@ -348,4 +348,3 @@ async def get_error_budget(
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

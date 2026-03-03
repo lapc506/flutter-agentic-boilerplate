@@ -418,4 +418,3 @@ Todos los IDEs con symlinks recibirán la actualización automáticamente.
 ---
 
 **Última actualización:** Diciembre 2025
-

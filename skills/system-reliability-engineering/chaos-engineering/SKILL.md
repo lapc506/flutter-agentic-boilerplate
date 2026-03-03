@@ -76,7 +76,7 @@ Learn & Improve
 > **📁 Scripts Ejecutables:** Este skill incluye scripts ejecutables en la carpeta [`scripts/`](scripts/):
 > - **Chaos Monkey:** [`scripts/chaos_monkey.py`](scripts/chaos_monkey.py) - Chaos Monkey para Kubernetes
 > - **Experiments:** [`scripts/experiments.py`](scripts/experiments.py) - Framework para chaos experiments
-> 
+>
 > Ver [`scripts/README.md`](scripts/README.md) para documentación de uso completa.
 
 ### 1. Litmus Chaos Experiments
@@ -269,7 +269,7 @@ def record_experiment(experiment_type: str, status: str, duration: float):
         experiment_type=experiment_type,
         status=status
     ).inc()
-    
+
     chaos_experiment_duration.labels(
         experiment_type=experiment_type
     ).observe(duration)
@@ -343,7 +343,6 @@ def record_experiment(experiment_type: str, status: str, duration: float):
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

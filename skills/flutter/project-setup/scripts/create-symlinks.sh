@@ -47,12 +47,12 @@ for SKILL_DIR in "$SKILLS_DIR"/*; do
     if [ -d "$SKILL_DIR" ]; then
         SKILL_NAME=$(basename "$SKILL_DIR")
         CLAUDE_SKILL_SYMLINK="$CLAUDE_SKILLS_DIR/$SKILL_NAME"
-        
+
         if [ -e "$CLAUDE_SKILL_SYMLINK" ] || [ -L "$CLAUDE_SKILL_SYMLINK" ]; then
             echo "⚠️  Ya existe: $CLAUDE_SKILL_SYMLINK"
             rm -f "$CLAUDE_SKILL_SYMLINK"
         fi
-        
+
         ln -s "$SKILL_DIR" "$CLAUDE_SKILL_SYMLINK"
         echo "✅ Symlink creado: $CLAUDE_SKILL_SYMLINK -> $SKILL_DIR"
     fi
@@ -97,12 +97,12 @@ for SKILL_DIR in "$SKILLS_DIR"/*; do
     if [ -d "$SKILL_DIR" ]; then
         SKILL_NAME=$(basename "$SKILL_DIR")
         CODEX_SKILL_SYMLINK="$CODEX_SKILLS_DIR/$SKILL_NAME"
-        
+
         if [ -e "$CODEX_SKILL_SYMLINK" ] || [ -L "$CODEX_SKILL_SYMLINK" ]; then
             echo "⚠️  Ya existe: $CODEX_SKILL_SYMLINK"
             rm -f "$CODEX_SKILL_SYMLINK"
         fi
-        
+
         ln -s "$SKILL_DIR" "$CODEX_SKILL_SYMLINK"
         echo "✅ Symlink creado: $CODEX_SKILL_SYMLINK -> $SKILL_DIR"
     fi
@@ -118,4 +118,3 @@ echo "  • Claude Skills: .claude/skills/*"
 echo "  • Gemini Extensions: ~/.gemini/extensions/flutter-agent-skills"
 echo "  • OpenAI Codex: codex/skills/*"
 echo ""
-

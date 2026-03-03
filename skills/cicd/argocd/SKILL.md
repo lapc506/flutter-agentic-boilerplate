@@ -122,20 +122,20 @@ metadata:
   namespace: argocd
 spec:
   description: My Flutter App Backend Project
-  
+
   sourceRepos:
     - 'https://github.com/myorg/myapp-monorepo.git'
-  
+
   destinations:
     - namespace: 'myapp-*'
       server: https://kubernetes.default.svc
     - namespace: production
       server: https://kubernetes.default.svc
-  
+
   clusterResourceWhitelist:
     - group: ''
       kind: Namespace
-  
+
   namespaceResourceWhitelist:
     - group: 'apps'
       kind: Deployment
@@ -149,14 +149,14 @@ spec:
       kind: Secret
     - group: 'networking.k8s.io'
       kind: Ingress
-  
+
   roles:
     - name: developer
       description: Developers can sync apps
       policies:
         - p, proj:myapp:developer, applications, sync, myapp/*, allow
         - p, proj:myapp:developer, applications, get, myapp/*, allow
-      
+
     - name: admin
       description: Admin access
       policies:
@@ -176,36 +176,36 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: myapp
-  
+
   source:
     repoURL: https://github.com/myorg/myapp-monorepo.git
     targetRevision: main
     path: k8s/overlays/production/backend
-  
+
   destination:
     server: https://kubernetes.default.svc
     namespace: production
-  
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
       allowEmpty: false
-    
+
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
-    
+
     retry:
       limit: 5
       backoff:
         duration: 5s
         factor: 2
         maxDuration: 3m
-  
+
   revisionHistoryLimit: 10
-  
+
   ignoreDifferences:
     - group: apps
       kind: Deployment
@@ -224,16 +224,16 @@ metadata:
   namespace: argocd
 spec:
   project: myapp
-  
+
   source:
     repoURL: https://github.com/myorg/myapp-monorepo.git
     targetRevision: main
     path: k8s/argocd/applications
-  
+
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
-  
+
   syncPolicy:
     automated:
       prune: true
@@ -482,11 +482,11 @@ metadata:
 data:
   service.slack: |
     token: $slack-token
-  
+
   template.app-deployed: |
     message: |
       Application {{.app.metadata.name}} is now running new version.
-      
+
   trigger.on-deployed: |
     - description: Application is synced and healthy
       send:
@@ -547,6 +547,5 @@ kubectl apply -f argocd-apps-backup.yaml
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

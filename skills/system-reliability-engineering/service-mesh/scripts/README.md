@@ -45,4 +45,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - mTLS configuration
 - Circuit breakers
 - Service mesh best practices
-

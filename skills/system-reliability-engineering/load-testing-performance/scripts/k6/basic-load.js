@@ -1,8 +1,8 @@
 /**
  * k6 Basic Load Test
- * 
+ *
  * Basic load test script for API endpoints.
- * 
+ *
  * Usage:
  *   k6 run basic-load.js
  *   k6 run basic-load.js --env API_TOKEN=your-token
@@ -62,4 +62,3 @@ export default function () {
 
   sleep(1);
 }
-

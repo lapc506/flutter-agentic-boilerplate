@@ -1,12 +1,12 @@
 /**
  * Structured Logger for Node.js
- * 
+ *
  * Winston-based structured logger with JSON output for centralized logging.
- * 
+ *
  * Usage:
  *   const logger = require('./structured-logger');
  *   logger.info('User created', { userId: '123', email: 'user@example.com' });
- * 
+ *
  * Or as a module:
  *   const { createLogger } = require('./structured-logger');
  *   const logger = createLogger({ service: 'my-service' });
@@ -24,7 +24,7 @@ if (!fs.existsSync(logsDir)) {
 
 /**
  * Create a structured logger instance.
- * 
+ *
  * @param {Object} options - Logger options
  * @param {string} options.service - Service name
  * @param {string} options.environment - Environment (development, production, etc.)
@@ -164,4 +164,3 @@ if (require.main === module) {
     traceId: 'abc-123',
   });
 }
-

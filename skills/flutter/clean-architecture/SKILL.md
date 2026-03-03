@@ -133,7 +133,7 @@ class UserEntity extends Equatable {
   final String email;
   final String? avatar;
   final DateTime createdAt;
-  
+
   const UserEntity({
     required this.id,
     required this.name,
@@ -141,7 +141,7 @@ class UserEntity extends Equatable {
     this.avatar,
     required this.createdAt,
   });
-  
+
   @override
   List<Object?> get props => [id, name, email, avatar, createdAt];
 }
@@ -176,9 +176,9 @@ import '../repositories/user_repository.dart';
 
 class GetUser implements UseCase<UserEntity, String> {
   final UserRepository repository;
-  
+
   GetUser(this.repository);
-  
+
   @override
   Future<Either<Failure, UserEntity>> call(String userId) async {
     return await repository.getUser(userId);
@@ -220,7 +220,7 @@ class UserModel extends UserEntity {
           avatar: avatar,
           createdAt: createdAt,
         );
-  
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
@@ -230,7 +230,7 @@ class UserModel extends UserEntity {
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -240,7 +240,7 @@ class UserModel extends UserEntity {
       'createdAt': createdAt.toIso8601String(),
     };
   }
-  
+
   factory UserModel.fromEntity(UserEntity entity) {
     return UserModel(
       id: entity.id,
@@ -276,33 +276,33 @@ abstract class UserRemoteDataSource {
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   final http.Client client;
   final String baseUrl;
-  
+
   UserRemoteDataSourceImpl({
     required this.client,
     required this.baseUrl,
   });
-  
+
   @override
   Future<UserModel> getUser(String id) async {
     final response = await client.get(
       Uri.parse('$baseUrl/users/$id'),
       headers: {'Content-Type': 'application/json'},
     );
-    
+
     if (response.statusCode == 200) {
       return UserModel.fromJson(json.decode(response.body));
     } else {
       throw ServerException();
     }
   }
-  
+
   @override
   Future<List<UserModel>> getUsers() async {
     final response = await client.get(
       Uri.parse('$baseUrl/users'),
       headers: {'Content-Type': 'application/json'},
     );
-    
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       return jsonList.map((json) => UserModel.fromJson(json)).toList();
@@ -310,7 +310,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       throw ServerException();
     }
   }
-  
+
   @override
   Future<UserModel> createUser(UserModel user) async {
     final response = await client.post(
@@ -318,14 +318,14 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       headers: {'Content-Type': 'application/json'},
       body: json.encode(user.toJson()),
     );
-    
+
     if (response.statusCode == 201) {
       return UserModel.fromJson(json.decode(response.body));
     } else {
       throw ServerException();
     }
   }
-  
+
   @override
   Future<UserModel> updateUser(UserModel user) async {
     final response = await client.put(
@@ -333,20 +333,20 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       headers: {'Content-Type': 'application/json'},
       body: json.encode(user.toJson()),
     );
-    
+
     if (response.statusCode == 200) {
       return UserModel.fromJson(json.decode(response.body));
     } else {
       throw ServerException();
     }
   }
-  
+
   @override
   Future<void> deleteUser(String id) async {
     final response = await client.delete(
       Uri.parse('$baseUrl/users/$id'),
     );
-    
+
     if (response.statusCode != 204) {
       throw ServerException();
     }
@@ -368,12 +368,12 @@ abstract class UserLocalDataSource {
 
 class UserLocalDataSourceImpl implements UserLocalDataSource {
   final SharedPreferences sharedPreferences;
-  
+
   static const CACHED_USER = 'CACHED_USER_';
   static const CACHED_USERS = 'CACHED_USERS';
-  
+
   UserLocalDataSourceImpl({required this.sharedPreferences});
-  
+
   @override
   Future<UserModel> getCachedUser(String id) {
     final jsonString = sharedPreferences.getString('$CACHED_USER$id');
@@ -383,7 +383,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
       throw CacheException();
     }
   }
-  
+
   @override
   Future<List<UserModel>> getCachedUsers() {
     final jsonString = sharedPreferences.getString(CACHED_USERS);
@@ -396,7 +396,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
       throw CacheException();
     }
   }
-  
+
   @override
   Future<void> cacheUser(UserModel user) {
     return sharedPreferences.setString(
@@ -404,7 +404,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
       json.encode(user.toJson()),
     );
   }
-  
+
   @override
   Future<void> cacheUsers(List<UserModel> users) {
     return sharedPreferences.setString(
@@ -433,13 +433,13 @@ class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
   final UserLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
-  
+
   UserRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.networkInfo,
   });
-  
+
   @override
   Future<Either<Failure, UserEntity>> getUser(String id) async {
     if (await networkInfo.isConnected) {
@@ -459,7 +459,7 @@ class UserRepositoryImpl implements UserRepository {
       }
     }
   }
-  
+
   @override
   Future<Either<Failure, List<UserEntity>>> getUsers() async {
     if (await networkInfo.isConnected) {
@@ -479,7 +479,7 @@ class UserRepositoryImpl implements UserRepository {
       }
     }
   }
-  
+
   @override
   Future<Either<Failure, UserEntity>> createUser(UserEntity user) async {
     if (await networkInfo.isConnected) {
@@ -494,7 +494,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(NetworkFailure());
     }
   }
-  
+
   @override
   Future<Either<Failure, UserEntity>> updateUser(UserEntity user) async {
     if (await networkInfo.isConnected) {
@@ -510,7 +510,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(NetworkFailure());
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> deleteUser(String id) async {
     if (await networkInfo.isConnected) {
@@ -540,7 +540,7 @@ import '../../domain/entities/user_entity.dart';
 
 abstract class UserEvent extends Equatable {
   const UserEvent();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -549,36 +549,36 @@ class GetUsersEvent extends UserEvent {}
 
 class GetUserEvent extends UserEvent {
   final String userId;
-  
+
   const GetUserEvent(this.userId);
-  
+
   @override
   List<Object> get props => [userId];
 }
 
 class CreateUserEvent extends UserEvent {
   final UserEntity user;
-  
+
   const CreateUserEvent(this.user);
-  
+
   @override
   List<Object> get props => [user];
 }
 
 class UpdateUserEvent extends UserEvent {
   final UserEntity user;
-  
+
   const UpdateUserEvent(this.user);
-  
+
   @override
   List<Object> get props => [user];
 }
 
 class DeleteUserEvent extends UserEvent {
   final String userId;
-  
+
   const DeleteUserEvent(this.userId);
-  
+
   @override
   List<Object> get props => [userId];
 }
@@ -589,7 +589,7 @@ import '../../domain/entities/user_entity.dart';
 
 abstract class UserState extends Equatable {
   const UserState();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -600,36 +600,36 @@ class UserLoading extends UserState {}
 
 class UsersLoaded extends UserState {
   final List<UserEntity> users;
-  
+
   const UsersLoaded(this.users);
-  
+
   @override
   List<Object> get props => [users];
 }
 
 class UserLoaded extends UserState {
   final UserEntity user;
-  
+
   const UserLoaded(this.user);
-  
+
   @override
   List<Object> get props => [user];
 }
 
 class UserOperationSuccess extends UserState {
   final String message;
-  
+
   const UserOperationSuccess(this.message);
-  
+
   @override
   List<Object> get props => [message];
 }
 
 class UserError extends UserState {
   final String message;
-  
+
   const UserError(this.message);
-  
+
   @override
   List<Object> get props => [message];
 }
@@ -650,7 +650,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final CreateUser createUser;
   final UpdateUser updateUser;
   final DeleteUser deleteUser;
-  
+
   UserBloc({
     required this.getUser,
     required this.getUsers,
@@ -664,77 +664,77 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UpdateUserEvent>(_onUpdateUser);
     on<DeleteUserEvent>(_onDeleteUser);
   }
-  
+
   Future<void> _onGetUsers(
     GetUsersEvent event,
     Emitter<UserState> emit,
   ) async {
     emit(UserLoading());
-    
+
     final result = await getUsers(NoParams());
-    
+
     result.fold(
       (failure) => emit(UserError(_mapFailureToMessage(failure))),
       (users) => emit(UsersLoaded(users)),
     );
   }
-  
+
   Future<void> _onGetUser(
     GetUserEvent event,
     Emitter<UserState> emit,
   ) async {
     emit(UserLoading());
-    
+
     final result = await getUser(event.userId);
-    
+
     result.fold(
       (failure) => emit(UserError(_mapFailureToMessage(failure))),
       (user) => emit(UserLoaded(user)),
     );
   }
-  
+
   Future<void> _onCreateUser(
     CreateUserEvent event,
     Emitter<UserState> emit,
   ) async {
     emit(UserLoading());
-    
+
     final result = await createUser(event.user);
-    
+
     result.fold(
       (failure) => emit(UserError(_mapFailureToMessage(failure))),
       (_) => emit(const UserOperationSuccess('Usuario creado exitosamente')),
     );
   }
-  
+
   Future<void> _onUpdateUser(
     UpdateUserEvent event,
     Emitter<UserState> emit,
   ) async {
     emit(UserLoading());
-    
+
     final result = await updateUser(event.user);
-    
+
     result.fold(
       (failure) => emit(UserError(_mapFailureToMessage(failure))),
       (_) => emit(const UserOperationSuccess('Usuario actualizado exitosamente')),
     );
   }
-  
+
   Future<void> _onDeleteUser(
     DeleteUserEvent event,
     Emitter<UserState> emit,
   ) async {
     emit(UserLoading());
-    
+
     final result = await deleteUser(event.userId);
-    
+
     result.fold(
       (failure) => emit(UserError(_mapFailureToMessage(failure))),
       (_) => emit(const UserOperationSuccess('Usuario eliminado exitosamente')),
     );
   }
-  
+
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case ServerFailure:
@@ -763,7 +763,7 @@ import '../widgets/user_card.dart';
 
 class UserListPage extends StatelessWidget {
   const UserListPage({Key? key}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -852,14 +852,14 @@ Future<void> init() async {
       deleteUser: sl(),
     ),
   );
-  
+
   // Use cases
   sl.registerLazySingleton(() => GetUser(sl()));
   sl.registerLazySingleton(() => GetUsers(sl()));
   sl.registerLazySingleton(() => CreateUser(sl()));
   sl.registerLazySingleton(() => UpdateUser(sl()));
   sl.registerLazySingleton(() => DeleteUser(sl()));
-  
+
   // Repository
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
@@ -868,7 +868,7 @@ Future<void> init() async {
       networkInfo: sl(),
     ),
   );
-  
+
   // Data sources
   sl.registerLazySingleton<UserRemoteDataSource>(
     () => UserRemoteDataSourceImpl(
@@ -876,16 +876,16 @@ Future<void> init() async {
       baseUrl: 'https://api.example.com',
     ),
   );
-  
+
   sl.registerLazySingleton<UserLocalDataSource>(
     () => UserLocalDataSourceImpl(sharedPreferences: sl()),
   );
-  
+
   //! Core
   sl.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(sl()),
   );
-  
+
   //! External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
@@ -900,27 +900,27 @@ Future<void> init() async {
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # State Management
   flutter_bloc: ^8.1.3
-  
+
   # Dependency Injection
   get_it: ^7.6.4
-  
+
   # Functional Programming
   dartz: ^0.10.1
-  
+
   # Remote
   http: ^1.1.0
-  
+
   # Local Storage
   shared_preferences: ^2.2.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  
+
   # Network
   internet_connection_checker: ^1.0.0+1
-  
+
   # Utilities
   equatable: ^2.0.5
 
@@ -989,6 +989,5 @@ Ver documentación completa de testing en cada archivo del skill.
 
 ---
 
-**Última actualización:** Diciembre 2025  
+**Última actualización:** Diciembre 2025
 **Versión:** 1.0.0
-

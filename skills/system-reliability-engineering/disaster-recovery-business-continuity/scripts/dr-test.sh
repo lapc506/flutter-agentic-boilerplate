@@ -48,7 +48,7 @@ log_error() {
 # Pre-test checklist
 verify_backups() {
     log_info "Verifying backups..."
-    
+
     if [ -d "/backup" ]; then
         BACKUP_COUNT=$(find /backup -name "*.gz" -o -name "*.tar.gz" | wc -l)
         if [ "$BACKUP_COUNT" -gt 0 ]; then
@@ -63,7 +63,7 @@ verify_backups() {
 
 verify_standby_health() {
     log_info "Verifying standby health..."
-    
+
     # Check if standby service is running
     if command -v kubectl &> /dev/null; then
         if kubectl get deployment "${SERVICE_NAME}-standby" &> /dev/null; then
@@ -78,7 +78,7 @@ verify_standby_health() {
 
 verify_documentation() {
     log_info "Verifying documentation..."
-    
+
     if [ -f "failover_procedures.md" ] || [ -f "DR_PLAN.md" ]; then
         log_info "Documentation found"
     else
@@ -89,12 +89,12 @@ verify_documentation() {
 # Simulate disaster
 simulate_disaster() {
     log_info "Simulating disaster (stopping primary service)..."
-    
+
     if [ "$SKIP_SIMULATION" = "true" ]; then
         log_warn "Skipping disaster simulation (DR_TEST_SKIP_SIMULATION=true)"
         return
     fi
-    
+
     if command -v kubectl &> /dev/null; then
         log_info "Scaling down primary deployment..."
         # kubectl scale deployment "${SERVICE_NAME}-primary" --replicas=0 || {
@@ -109,9 +109,9 @@ simulate_disaster() {
 # Execute failover
 execute_failover() {
     log_info "Executing failover for $SERVICE_NAME..."
-    
+
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    
+
     if [ -f "$SCRIPT_DIR/failover_procedures.py" ]; then
         python3 "$SCRIPT_DIR/failover_procedures.py" failover "$SERVICE_NAME" || {
             log_error "Failover failed"
@@ -126,10 +126,10 @@ execute_failover() {
 # Check service health
 check_service_health() {
     log_info "Checking service health..."
-    
+
     # Wait for service to stabilize
     sleep 10
-    
+
     # Check if service is responding
     if command -v curl &> /dev/null; then
         # Replace with actual health check endpoint
@@ -147,12 +147,12 @@ check_service_health() {
 # Restore primary
 restore_primary() {
     log_info "Restoring primary service..."
-    
+
     if [ "$SKIP_SIMULATION" = "true" ]; then
         log_warn "Skipping primary restoration (DR_TEST_SKIP_SIMULATION=true)"
         return
     fi
-    
+
     if command -v kubectl &> /dev/null; then
         log_info "Scaling up primary deployment..."
         # kubectl scale deployment "${SERVICE_NAME}-primary" --replicas=3 || {
@@ -167,15 +167,15 @@ restore_primary() {
 # Execute failback
 execute_failback() {
     log_info "Executing failback for $SERVICE_NAME..."
-    
+
     if [ "$SKIP_FAILBACK" = "true" ]; then
         log_warn "Skipping failback (DR_TEST_SKIP_FAILBACK=true)"
         return
     fi
-    
+
     # Failback logic (reverse of failover)
     log_info "Failback procedure (implement based on your requirements)"
-    
+
     # Example:
     # 1. Verify primary is healthy
     # 2. Update routing back to primary
@@ -191,58 +191,58 @@ verify_service_health() {
 
 verify_data_consistency() {
     log_info "Verifying data consistency..."
-    
+
     # Data consistency checks
     # - Compare primary and standby data
     # - Check replication lag
     # - Verify no data loss
-    
+
     log_info "Data consistency check: OK (implement based on your requirements)"
 }
 
 # Main test execution
 main() {
     log_section "🚨 Disaster Recovery Test - $SERVICE_NAME"
-    
+
     START_TIME=$(date +%s)
-    
+
     # 1. Pre-test checklist
     log_section "1️⃣  Pre-Test Checklist"
     verify_backups
     verify_standby_health
     verify_documentation
-    
+
     # 2. Simulate disaster
     log_section "2️⃣  Simulating Disaster"
     simulate_disaster
-    
+
     # 3. Execute failover
     log_section "3️⃣  Executing Failover"
     if ! execute_failover; then
         log_error "Failover failed, aborting test"
         exit 1
     fi
-    
+
     # 4. Verify service availability
     log_section "4️⃣  Verifying Service Availability"
     check_service_health
-    
+
     # 5. Restore primary
     log_section "5️⃣  Restoring Primary"
     restore_primary
-    
+
     # 6. Failback
     log_section "6️⃣  Executing Failback"
     execute_failback
-    
+
     # 7. Post-test verification
     log_section "7️⃣  Post-Test Verification"
     verify_service_health
     verify_data_consistency
-    
+
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
-    
+
     log_section "✅ DR Test Completed"
     log_info "Duration: ${DURATION}s"
     log_info "Service: $SERVICE_NAME"
@@ -251,4 +251,3 @@ main() {
 
 # Run main
 main
-

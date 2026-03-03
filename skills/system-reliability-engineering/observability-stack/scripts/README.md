@@ -84,4 +84,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Jaeger tracing
 - OpenTelemetry best practices
 - Rust instrumentation avanzada
-

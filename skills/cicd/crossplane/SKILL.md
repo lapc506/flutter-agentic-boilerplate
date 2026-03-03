@@ -176,7 +176,7 @@ spec:
   compositeTypeRef:
     apiVersion: myapp.io/v1alpha1
     kind: XBackend
-  
+
   resources:
   - name: database
     base:
@@ -196,7 +196,7 @@ spec:
           small: db.t3.micro
           medium: db.t3.small
           large: db.t3.medium
-  
+
   - name: storage
     base:
       apiVersion: s3.aws.upbound.io/v1beta1
@@ -273,4 +273,3 @@ spec:
 ---
 
 **Versión:** 1.0.0
-

@@ -44,7 +44,7 @@ elseif ($env:ANDROID_SDK_ROOT) {
 else {
     Print-Warning "ANDROID_HOME o ANDROID_SDK_ROOT no están configurados"
     Print-Warning "Intentando detectar desde ubicaciones comunes..."
-    
+
     # Intentar detectar en ubicaciones comunes
     $CommonPaths = @(
         "$env:LOCALAPPDATA\Android\Sdk",
@@ -52,7 +52,7 @@ else {
         "$env:ProgramFiles\Android\Sdk",
         "C:\Android\Sdk"
     )
-    
+
     $Found = $false
     foreach ($path in $CommonPaths) {
         if (Test-Path $path) {
@@ -62,7 +62,7 @@ else {
             break
         }
     }
-    
+
     if (-not $Found) {
         Print-Error "No se pudo detectar Android SDK. Configura ANDROID_HOME o ANDROID_SDK_ROOT"
     }
@@ -81,14 +81,14 @@ if ($AdbPath) {
 }
 else {
     Print-Error "adb no está en PATH"
-    
+
     # Intentar encontrar adb en ANDROID_SDK_PATH
     if ($AndroidSdkPath) {
         $AdbCandidates = @(
             "$AndroidSdkPath\platform-tools\adb.exe",
             "$AndroidSdkPath\tools\adb.exe"
         )
-        
+
         foreach ($adbCandidate in $AdbCandidates) {
             if (Test-Path $adbCandidate) {
                 Print-Warning "adb encontrado pero no en PATH: $adbCandidate"
@@ -110,14 +110,14 @@ if ($EmulatorPath) {
 }
 else {
     Print-Error "emulator no está en PATH"
-    
+
     # Intentar encontrar emulator en ANDROID_SDK_PATH
     if ($AndroidSdkPath) {
         $EmulatorCandidates = @(
             "$AndroidSdkPath\emulator\emulator.exe",
             "$AndroidSdkPath\tools\emulator.exe"
         )
-        
+
         foreach ($emulatorCandidate in $EmulatorCandidates) {
             if (Test-Path $emulatorCandidate) {
                 Print-Warning "emulator encontrado pero no en PATH: $emulatorCandidate"
@@ -138,7 +138,7 @@ if ($AndroidSdkPath) {
         "$AndroidSdkPath\cmdline-tools\latest\bin\avdmanager.bat",
         "$AndroidSdkPath\tools\bin\avdmanager.bat"
     )
-    
+
     $Found = $false
     foreach ($avdManagerCandidate in $AvdManagerCandidates) {
         if (Test-Path $avdManagerCandidate) {
@@ -147,7 +147,7 @@ if ($AndroidSdkPath) {
             break
         }
     }
-    
+
     if (-not $Found) {
         Print-Warning "avdmanager no encontrado. Puede que necesites instalar Command-line Tools"
     }
@@ -261,5 +261,3 @@ else {
     Write-Host "4. Reinicia PowerShell"
     exit 1
 }
-
-

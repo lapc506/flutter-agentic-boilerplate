@@ -11,4 +11,3 @@ harness = false
 criterion = { version = "0.5", features = ["html_reports"] }
 pprof = "0.12"
 tokio = { version = "1", features = ["full"] }
-

@@ -170,19 +170,76 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [3.0.0] - 2026-02-18
+
+### Agregado - Ejemplos y Templates
+
+- [x] **Estructura de Ejemplos** en `/examples/`
+  - Directorio `templates/` con templates reutilizables
+  - Directorio `projects/` con proyectos de ejemplo completos
+  - Scripts de generación automática
+  - Documentación completa de uso
+
+- [x] **Scripts de Generación**
+  - `create-project.sh` - Crea nuevos proyectos desde templates
+  - `add-feature.sh` - Agrega features/skills a proyectos existentes
+  - Soporte para múltiples templates: starter, offline-first, microservices
+
+### Agregado - Nuevos Skills (16-20)
+
+- [x] **Skill 16: WebSocket Integration** (`skills/flutter/websocket-integration/`)
+  - WebSocket y Socket.io para comunicación en tiempo real
+  - Auto-reconexión con backoff exponencial
+  - Cola de mensajes offline
+  - Ejemplos de chat en tiempo real
+
+- [x] **Skill 17: Payment Integration** (`skills/flutter/payment-integration/`)
+  - Stripe con Payment Intents
+  - PayPal checkout
+  - Apple Pay / Google Pay
+  - Suscripciones y gestión de pagos
+  - Cumplimiento PCI DSS
+
+- [x] **Skill 18: Map Integration** (`skills/flutter/map-integration/`)
+  - Google Maps y Mapbox
+  - Marcadores y clusters
+  - Tracking de ubicación
+  - Rutas y direcciones
+  - Polígonos y polilíneas
+
+- [x] **Skill 19: Video/Audio Processing** (`skills/flutter/video-audio-processing/`)
+  - Reproducción de video (video_player, chewie)
+  - Grabación de video con cámara
+  - Grabación y reproducción de audio
+  - Procesamiento con FFmpeg
+  - Compresión y edición de video
+
+- [x] **Skill 20: Machine Learning** (`skills/flutter/machine-learning/`)
+  - TensorFlow Lite para clasificación de imágenes
+  - ML Kit para OCR, detección de objetos, códigos de barras
+  - Face detection
+  - Descarga de modelos desde Firebase
+  - Inferencia on-device optimizada
+
+### Documentación
+
+- [x] Guías completas para cada nuevo skill
+- [x] Ejemplos de código funcionales
+- [x] Mejores prácticas y troubleshooting
+- [x] Requisitos de backend donde aplica
+
+---
+
 ## [Unreleased]
 
 ### Planeado para Futuras Versiones
 
-- [ ] Ejemplos prácticos completos en `/examples`
-- [ ] Templates de proyecto pre-configurados
-- [ ] Scripts de generación automática
 - [ ] Integración con más herramientas MCP
-- [ ] Skill 16: WebSocket/Socket.io Integration
-- [ ] Skill 17: Payment Integration (Stripe, PayPal)
-- [ ] Skill 18: Map Integration (Google Maps, Mapbox)
-- [ ] Skill 19: Video/Audio Processing
-- [ ] Skill 20: Machine Learning Integration
+- [ ] Skill 21: Voice Recognition
+- [ ] Skill 22: Biometric Authentication
+- [ ] Skill 23: Background Processing
+- [ ] Skill 24: App Clips/Instant Apps
+- [ ] Skill 25: Wearable Integration
 
 ---
 
@@ -198,4 +255,3 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ---
 
 **Nota:** Las fechas siguen el formato YYYY-MM-DD (ISO 8601)
-

@@ -52,4 +52,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Connection pooling
 - Estrategias de backup
 - Monitoreo de bases de datos
-

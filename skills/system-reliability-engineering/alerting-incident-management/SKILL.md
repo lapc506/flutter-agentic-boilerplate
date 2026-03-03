@@ -447,11 +447,11 @@ class IncidentResponseWorkflow:
             affected_services=affected_services,
             description=description
         )
-        
+
         self.incidents.append(incident)
         self._notify_team(incident)
         self._create_incident_channel(incident)
-        
+
         return incident
 
     def _assign_oncall(self) -> str:
@@ -594,7 +594,6 @@ inhibit_rules:
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

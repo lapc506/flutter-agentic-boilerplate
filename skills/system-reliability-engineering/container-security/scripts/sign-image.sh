@@ -57,4 +57,3 @@ notary -s "$NOTARY_SERVER" \
 
 echo ""
 echo "✅ Image signed successfully!"
-

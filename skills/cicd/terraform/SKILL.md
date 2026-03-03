@@ -94,18 +94,18 @@ infrastructure/
 # infrastructure/terraform/backend.tf
 terraform {
   required_version = ">= 1.6.0"
-  
+
   backend "s3" {
     bucket         = "myapp-terraform-state"
     key            = "infrastructure/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
     dynamodb_table = "terraform-lock"
-    
+
     # Workspace support
     workspace_key_prefix = "env"
   }
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -137,7 +137,7 @@ resource "aws_eks_cluster" "main" {
     endpoint_private_access = true
     endpoint_public_access  = var.enable_public_access
     public_access_cidrs     = var.public_access_cidrs
-    
+
     security_group_ids = [aws_security_group.cluster.id]
   }
 
@@ -189,7 +189,7 @@ resource "aws_eks_node_group" "main" {
 
   instance_types = var.instance_types
   capacity_type  = var.capacity_type  # ON_DEMAND or SPOT
-  
+
   disk_size = var.disk_size
 
   labels = {
@@ -527,7 +527,7 @@ module "vpc" {
   name               = "myapp-prod-vpc"
   cidr               = "10.0.0.0/16"
   availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  
+
   public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
   private_subnets = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
   database_subnets = ["10.0.21.0/24", "10.0.22.0/24", "10.0.23.0/24"]
@@ -593,7 +593,7 @@ module "redis" {
   engine_version   = "7.0"
   node_type        = "cache.r6g.large"
   num_cache_nodes  = 3
-  
+
   subnet_ids = module.vpc.private_subnet_ids
 
   tags = local.common_tags
@@ -612,7 +612,7 @@ module "s3_storage" {
     {
       id      = "archive-old-objects"
       enabled = true
-      
+
       transition = {
         days          = 90
         storage_class = "GLACIER"
@@ -847,6 +847,5 @@ terraform graph | dot -Tpng > graph.png
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

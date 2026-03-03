@@ -56,12 +56,12 @@ import 'package:dartz/dartz.dart';
 void main() {
   late GetUser usecase;
   late MockUserRepository mockRepository;
-  
+
   setUp(() {
     mockRepository = MockUserRepository();
     usecase = GetUser(mockRepository);
   });
-  
+
   test('should get user from repository', () async {
     // Arrange
     const userId = '1';
@@ -73,10 +73,10 @@ void main() {
     );
     when(mockRepository.getUser(any))
         .thenAnswer((_) async => const Right(tUser));
-    
+
     // Act
     final result = await usecase(userId);
-    
+
     // Assert
     expect(result, const Right(tUser));
     verify(mockRepository.getUser(userId));
@@ -103,7 +103,7 @@ void main() {
       email: 'john@example.com',
       createdAt: DateTime(2024),
     );
-    
+
     // Act
     await tester.pumpWidget(
       MaterialApp(
@@ -112,12 +112,12 @@ void main() {
         ),
       ),
     );
-    
+
     // Assert
     expect(find.text('John Doe'), findsOneWidget);
     expect(find.text('john@example.com'), findsOneWidget);
   });
-  
+
   testWidgets('UserCard calls onTap when tapped', (tester) async {
     // Arrange
     var tapped = false;
@@ -127,7 +127,7 @@ void main() {
       email: 'john@example.com',
       createdAt: DateTime(2024),
     );
-    
+
     // Act
     await tester.pumpWidget(
       MaterialApp(
@@ -139,9 +139,9 @@ void main() {
         ),
       ),
     );
-    
+
     await tester.tap(find.byType(UserCard));
-    
+
     // Assert
     expect(tapped, true);
   });
@@ -159,21 +159,21 @@ import 'package:integration_test/integration_test.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  
+
   group('User Flow Integration Tests', () {
     testWidgets('complete user CRUD flow', (tester) async {
       // Arrange
       await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
-      
+
       // Navigate to user list
       await tester.tap(find.text('Users'));
       await tester.pumpAndSettle();
-      
+
       // Create new user
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
-      
+
       await tester.enterText(
         find.byKey(const Key('nameField')),
         'John Doe',
@@ -182,28 +182,28 @@ void main() {
         find.byKey(const Key('emailField')),
         'john@example.com',
       );
-      
+
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      
+
       // Verify user was created
       expect(find.text('John Doe'), findsOneWidget);
-      
+
       // Update user
       await tester.tap(find.text('John Doe'));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.byIcon(Icons.edit));
       await tester.pumpAndSettle();
-      
+
       await tester.enterText(
         find.byKey(const Key('nameField')),
         'Jane Doe',
       );
-      
+
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      
+
       // Verify user was updated
       expect(find.text('Jane Doe'), findsOneWidget);
       expect(find.text('John Doe'), findsNothing);
@@ -223,16 +223,16 @@ import 'package:mockito/mockito.dart';
 void main() {
   late UserBloc bloc;
   late MockGetUser mockGetUser;
-  
+
   setUp(() {
     mockGetUser = MockGetUser();
     bloc = UserBloc(getUser: mockGetUser);
   });
-  
+
   tearDown(() {
     bloc.close();
   });
-  
+
   group('UserBloc', () {
     const tUser = UserEntity(
       id: '1',
@@ -240,7 +240,7 @@ void main() {
       email: 'test@test.com',
       createdAt: DateTime(2024),
     );
-    
+
     blocTest<UserBloc, UserState>(
       'emits [Loading, Loaded] when GetUserEvent is added successfully',
       build: () {
@@ -257,7 +257,7 @@ void main() {
         verify(mockGetUser('1'));
       },
     );
-    
+
     blocTest<UserBloc, UserState>(
       'emits [Loading, Error] when GetUserEvent fails',
       build: () {
@@ -283,17 +283,17 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  
+
   # Mocking
   mockito: ^5.4.4
   mocktail: ^1.0.1
-  
+
   # BLoC Testing
   bloc_test: ^9.1.5
-  
+
   # Coverage
   test_coverage: ^0.2.0
-  
+
   # Advanced Testing
   patrol: ^3.0.0
 ```
@@ -326,6 +326,5 @@ open mobile/coverage/html/index.html
 
 ---
 
-**Última actualización:** Diciembre 2025  
+**Última actualización:** Diciembre 2025
 **Versión:** 1.0.0
-

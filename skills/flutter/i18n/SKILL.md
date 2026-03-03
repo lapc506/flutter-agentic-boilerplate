@@ -81,13 +81,13 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   flutter_localizations:
     sdk: flutter
-  
+
   # intl está incluido automáticamente con flutter_localizations
   # No es necesario especificarlo manualmente, Flutter lo pinnea automáticamente
-  
+
   # State management para cambio de idioma (opcional)
   flutter_bloc: ^8.1.3
   # O
@@ -143,7 +143,7 @@ Push-Location mobile; flutter gen-l10n; Pop-Location
 cd mobile && flutter gen-l10n
 ```
 
-**⚠️ IMPORTANTE:** 
+**⚠️ IMPORTANTE:**
 - Los archivos generados se crearán en `lib/l10n/app_localizations.dart` (no en `flutter_gen/gen_l10n/`) cuando usas `l10n.yaml` con `arb-dir: lib/l10n`.
 - En Windows, usa `Push-Location` y `Pop-Location` en lugar de `cd` para evitar problemas con rutas duplicadas.
 
@@ -154,17 +154,17 @@ cd mobile && flutter gen-l10n
 ```json
 {
   "@@locale": "en",
-  
+
   "appTitle": "My App",
   "@appTitle": {
     "description": "The title of the application"
   },
-  
+
   "welcome": "Welcome",
   "@welcome": {
     "description": "Welcome message"
   },
-  
+
   "welcomeMessage": "Welcome, {name}!",
   "@welcomeMessage": {
     "description": "Welcome message with user name",
@@ -175,7 +175,7 @@ cd mobile && flutter gen-l10n
       }
     }
   },
-  
+
   "itemCount": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",
   "@itemCount": {
     "description": "Number of items in cart",
@@ -186,7 +186,7 @@ cd mobile && flutter gen-l10n
       }
     }
   },
-  
+
   "price": "{amount, plural, =0{Free} other{{currency}{amount}}}",
   "@price": {
     "description": "Product price",
@@ -202,7 +202,7 @@ cd mobile && flutter gen-l10n
       }
     }
   },
-  
+
   "lastUpdate": "Last updated: {date}",
   "@lastUpdate": {
     "description": "Last update timestamp",
@@ -214,7 +214,7 @@ cd mobile && flutter gen-l10n
       }
     }
   },
-  
+
   "login": "Login",
   "logout": "Logout",
   "email": "Email",
@@ -222,28 +222,28 @@ cd mobile && flutter gen-l10n
   "forgotPassword": "Forgot password?",
   "dontHaveAccount": "Don't have an account?",
   "register": "Register",
-  
+
   "home": "Home",
   "products": "Products",
   "cart": "Cart",
   "profile": "Profile",
-  
+
   "addToCart": "Add to Cart",
   "removeFromCart": "Remove from Cart",
   "checkout": "Checkout",
   "total": "Total",
-  
+
   "errorGeneric": "An error occurred. Please try again.",
   "errorNetwork": "Network error. Check your connection.",
   "errorAuth": "Authentication failed. Please login again.",
-  
+
   "confirm": "Confirm",
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",
   "edit": "Edit",
   "ok": "OK",
-  
+
   "loading": "Loading...",
   "noData": "No data available",
   "tryAgain": "Try Again"
@@ -255,17 +255,17 @@ cd mobile && flutter gen-l10n
 ```json
 {
   "@@locale": "es",
-  
+
   "appTitle": "Mi Aplicación",
   "welcome": "Bienvenido",
   "welcomeMessage": "¡Bienvenido, {name}!",
-  
+
   "itemCount": "{count, plural, =0{Sin artículos} =1{1 artículo} other{{count} artículos}}",
-  
+
   "price": "{amount, plural, =0{Gratis} other{{currency}{amount}}}",
-  
+
   "lastUpdate": "Última actualización: {date}",
-  
+
   "login": "Iniciar sesión",
   "logout": "Cerrar sesión",
   "email": "Correo electrónico",
@@ -273,28 +273,28 @@ cd mobile && flutter gen-l10n
   "forgotPassword": "¿Olvidaste tu contraseña?",
   "dontHaveAccount": "¿No tienes cuenta?",
   "register": "Registrarse",
-  
+
   "home": "Inicio",
   "products": "Productos",
   "cart": "Carrito",
   "profile": "Perfil",
-  
+
   "addToCart": "Agregar al carrito",
   "removeFromCart": "Quitar del carrito",
   "checkout": "Pagar",
   "total": "Total",
-  
+
   "errorGeneric": "Ocurrió un error. Por favor intenta de nuevo.",
   "errorNetwork": "Error de red. Verifica tu conexión.",
   "errorAuth": "Autenticación fallida. Por favor inicia sesión de nuevo.",
-  
+
   "confirm": "Confirmar",
   "cancel": "Cancelar",
   "save": "Guardar",
   "delete": "Eliminar",
   "edit": "Editar",
   "ok": "OK",
-  
+
   "loading": "Cargando...",
   "noData": "No hay datos disponibles",
   "tryAgain": "Intentar de nuevo"
@@ -320,7 +320,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'i18n App',
-      
+
       // Configuración de localización
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -328,7 +328,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      
+
       // Idiomas soportados
       supportedLocales: AppLocalizations.supportedLocales,
       // O manualmente:
@@ -339,10 +339,10 @@ class MyApp extends StatelessWidget {
       //   Locale('de', ''), // Alemán
       //   Locale('pt', ''), // Portugués
       // ],
-      
+
       // Idioma por defecto
       locale: const Locale('en'),
-      
+
       // Callback cuando el sistema cambia de idioma
       localeResolutionCallback: (locale, supportedLocales) {
         // Verificar si el idioma del dispositivo está soportado
@@ -354,7 +354,7 @@ class MyApp extends StatelessWidget {
         // Fallback al primer idioma soportado (inglés)
         return supportedLocales.first;
       },
-      
+
       home: const HomeScreen(),
     );
   }
@@ -375,7 +375,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Obtener instancia de localización
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
@@ -390,43 +390,43 @@ class HomeScreen extends StatelessWidget {
               l10n.welcome,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Texto con parámetro
             Text(
               l10n.welcomeMessage('John'),
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Plural
             Text(l10n.itemCount(0)),  // "No items" / "Sin artículos"
             Text(l10n.itemCount(1)),  // "1 item" / "1 artículo"
             Text(l10n.itemCount(5)),  // "5 items" / "5 artículos"
-            
+
             const SizedBox(height: 16),
-            
+
             // Precio con formato
             Text(l10n.price(0, '\$')),      // "Free" / "Gratis"
             Text(l10n.price(9.99, '\$')),   // "$9.99"
-            
+
             const SizedBox(height: 16),
-            
+
             // Fecha formateada
             Text(l10n.lastUpdate(DateTime.now())),
-            
+
             const SizedBox(height: 32),
-            
+
             // Botones con traducciones
             ElevatedButton(
               onPressed: () {},
               child: Text(l10n.login),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             TextButton(
               onPressed: () {},
               child: Text(l10n.forgotPassword),
@@ -504,15 +504,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
-  
+
   runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
-  
+
   const MyApp({super.key, required this.prefs});
 
   @override
@@ -523,14 +523,14 @@ class MyApp extends StatelessWidget {
         builder: (context, locale) {
           return MaterialApp(
             title: 'i18n App',
-            
+
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            
+
             supportedLocales: AppLocalizations.supportedLocales,
             // O manualmente:
             // supportedLocales: const [
@@ -540,9 +540,9 @@ class MyApp extends StatelessWidget {
             //   Locale('de'),
             //   Locale('pt'),
             // ],
-            
+
             locale: locale,  // Idioma actual desde BLoC
-            
+
             home: const HomeScreen(),
           );
         },
@@ -688,14 +688,14 @@ class AppFormatters {
 // Uso
 class ProductCard extends StatelessWidget {
   final Product product;
-  
+
   const ProductCard({required this.product});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    
+
     return Card(
       child: Column(
         children: [
@@ -723,10 +723,10 @@ class ProductCard extends StatelessWidget {
   "auth_login": "Login",
   "auth_logout": "Logout",
   "auth_register": "Register",
-  
+
   "products_title": "Products",
   "products_addToCart": "Add to Cart",
-  
+
   "error_network": "Network error",
   "error_auth": "Authentication error"
 }
@@ -813,6 +813,5 @@ Push-Location mobile; flutter gen-l10n; Pop-Location
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

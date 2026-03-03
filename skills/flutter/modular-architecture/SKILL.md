@@ -172,13 +172,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Modular routing and DI
   flutter_modular: ^6.3.2
-  
+
   # State management (opcional, según preferencia)
   flutter_bloc: ^8.1.3
-  
+
   # Módulos locales
   core:
     path: packages/core
@@ -211,14 +211,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Networking
   dio: ^5.4.0
-  
+
   # Storage
   shared_preferences: ^2.2.2
   flutter_secure_storage: ^9.0.0
-  
+
   # Utils
   equatable: ^2.0.5
   dartz: ^0.10.1
@@ -243,17 +243,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Core dependency
   core:
     path: ../core
-  
+
   # Modular
   flutter_modular: ^6.3.2
-  
+
   # State management
   flutter_bloc: ^8.1.3
-  
+
   # Utils
   equatable: ^2.0.5
   dartz: ^0.10.1
@@ -278,24 +278,24 @@ packages:
 command:
   bootstrap:
     usePubspecOverrides: true
-  
+
 scripts:
   analyze:
     run: melos exec -- flutter analyze
     description: Run flutter analyze in all packages (ejecutar desde raíz del proyecto)
-    
+
   test:
     run: melos exec -- flutter test
     description: Run tests in all packages (ejecutar desde raíz del proyecto)
-    
+
   format:
     run: melos exec -- dart format . --set-exit-if-changed
     description: Format all packages (ejecutar desde raíz del proyecto)
-    
+
   clean:
     run: melos exec -- flutter clean
     description: Clean all packages (ejecutar desde raíz del proyecto)
-    
+
   get:
     run: melos exec -- flutter pub get
     description: Get dependencies for all packages (ejecutar desde raíz del proyecto)
@@ -315,19 +315,19 @@ class AppColors {
   static const Color primaryVariant = Color(0xFF3700B3);
   static const Color secondary = Color(0xFF03DAC6);
   static const Color secondaryVariant = Color(0xFF018786);
-  
+
   // Neutral colors
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color error = Color(0xFFB00020);
-  
+
   // Text colors
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color onSecondary = Color(0xFF000000);
   static const Color onBackground = Color(0xFF000000);
   static const Color onSurface = Color(0xFF000000);
   static const Color onError = Color(0xFFFFFFFF);
-  
+
   // Grays
   static const Color gray50 = Color(0xFFFAFAFA);
   static const Color gray100 = Color(0xFFF5F5F5);
@@ -561,12 +561,12 @@ class AuthModule extends Module {
     Bind.singleton<AuthRemoteDataSource>(
       (i) => AuthRemoteDataSourceImpl(dioClient: i()),
     ),
-    
+
     // Repositories
     Bind.singleton<AuthRepository>(
       (i) => AuthRepositoryImpl(remoteDataSource: i()),
     ),
-    
+
     // Use cases
     Bind.factory<LoginUseCase>(
       (i) => LoginUseCase(repository: i()),
@@ -580,7 +580,7 @@ class AuthModule extends Module {
     Bind.factory<GetCurrentUserUseCase>(
       (i) => GetCurrentUserUseCase(repository: i()),
     ),
-    
+
     // BLoCs
     Bind.singleton<AuthBloc>(
       (i) => AuthBloc(
@@ -714,7 +714,7 @@ class AuthGuard extends RouteGuard {
   Future<bool> canActivate(String path, ModularRoute route) async {
     final authBloc = Modular.get<AuthBloc>();
     final state = authBloc.state;
-    
+
     return state.maybeWhen(
       authenticated: (_) => true,
       orElse: () {
@@ -848,7 +848,7 @@ class LoginCubit extends Cubit<LoginState> {
       (failure) => emit(LoginState.error(failure.message)),
       (user) {
         emit(const LoginState.success());
-        
+
         // Emitir evento de login exitoso
         eventBus.fire(UserLoggedInEvent(
           userId: user.id,
@@ -1055,6 +1055,5 @@ packages/
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

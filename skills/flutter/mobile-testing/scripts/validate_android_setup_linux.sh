@@ -46,7 +46,7 @@ elif [ -n "$ANDROID_SDK_ROOT" ]; then
 else
     print_warning "ANDROID_HOME o ANDROID_SDK_ROOT no están configurados"
     print_warning "Intentando detectar desde ubicaciones comunes de Linux..."
-    
+
     # Intentar detectar en ubicaciones comunes de Linux
     COMMON_PATHS=(
         "$HOME/Android/Sdk"
@@ -54,7 +54,7 @@ else
         "/usr/local/android-sdk"
         "/usr/lib/android-sdk"
     )
-    
+
     FOUND=false
     for path in "${COMMON_PATHS[@]}"; do
         if [ -d "$path" ]; then
@@ -64,7 +64,7 @@ else
             break
         fi
     done
-    
+
     if [ "$FOUND" = false ]; then
         print_error "No se pudo detectar Android SDK. Configura ANDROID_HOME o ANDROID_SDK_ROOT"
         ANDROID_SDK_PATH=""
@@ -82,14 +82,14 @@ if command -v adb &> /dev/null; then
     echo "   Versión: $ADB_VERSION"
 else
     print_error "adb no está en PATH"
-    
+
     # Intentar encontrar adb en ANDROID_SDK_PATH
     if [ -n "$ANDROID_SDK_PATH" ]; then
         ADB_CANDIDATES=(
             "$ANDROID_SDK_PATH/platform-tools/adb"
             "$ANDROID_SDK_PATH/tools/adb"
         )
-        
+
         for adb_path in "${ADB_CANDIDATES[@]}"; do
             if [ -f "$adb_path" ] && [ -x "$adb_path" ]; then
                 print_warning "adb encontrado pero no en PATH: $adb_path"
@@ -109,14 +109,14 @@ if command -v emulator &> /dev/null; then
     print_success "emulator encontrado en PATH: $EMULATOR_PATH"
 else
     print_error "emulator no está en PATH"
-    
+
     # Intentar encontrar emulator en ANDROID_SDK_PATH
     if [ -n "$ANDROID_SDK_PATH" ]; then
         EMULATOR_CANDIDATES=(
             "$ANDROID_SDK_PATH/emulator/emulator"
             "$ANDROID_SDK_PATH/tools/emulator"
         )
-        
+
         for emulator_path in "${EMULATOR_CANDIDATES[@]}"; do
             if [ -f "$emulator_path" ] && [ -x "$emulator_path" ]; then
                 print_warning "emulator encontrado pero no en PATH: $emulator_path"
@@ -136,7 +136,7 @@ if [ -n "$ANDROID_SDK_PATH" ]; then
         "$ANDROID_SDK_PATH/cmdline-tools/latest/bin/avdmanager"
         "$ANDROID_SDK_PATH/tools/bin/avdmanager"
     )
-    
+
     FOUND=false
     for avdmanager_path in "${AVDMANAGER_CANDIDATES[@]}"; do
         if [ -f "$avdmanager_path" ] && [ -x "$avdmanager_path" ]; then
@@ -145,7 +145,7 @@ if [ -n "$ANDROID_SDK_PATH" ]; then
             break
         fi
     done
-    
+
     if [ "$FOUND" = false ]; then
         print_warning "avdmanager no encontrado. Puede que necesites instalar Command-line Tools"
     fi
@@ -230,5 +230,3 @@ else
     echo "4. Reinicia tu terminal o ejecuta: source ~/.bashrc"
     exit 1
 fi
-
-

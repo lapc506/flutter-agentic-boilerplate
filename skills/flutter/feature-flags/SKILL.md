@@ -169,7 +169,7 @@ import 'feature_flags.dart';
 
 class FirebaseRemoteConfigService {
   static final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
-  
+
   static bool _initialized = false;
 
   // Initialize Remote Config
@@ -181,7 +181,7 @@ class FirebaseRemoteConfigService {
       await _remoteConfig.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: kDebugMode 
+          minimumFetchInterval: kDebugMode
               ? const Duration(minutes: 5)  // Debug: 5 minutes
               : const Duration(hours: 1),    // Production: 1 hour
         ),
@@ -693,7 +693,6 @@ await _remoteConfig.setDefaults(_getDefaultValues());
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

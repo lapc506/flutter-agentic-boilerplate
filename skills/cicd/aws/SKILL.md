@@ -90,13 +90,13 @@ aws s3api put-bucket-lifecycle-configuration \
 // handler.js
 exports.handler = async (event) => {
   const body = JSON.parse(event.body);
-  
+
   // Your business logic
   const response = {
     message: 'Hello from Lambda!',
     input: body
   };
-  
+
   return {
     statusCode: 200,
     headers: {
@@ -276,6 +276,5 @@ export class BackendStack extends cdk.Stack {
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

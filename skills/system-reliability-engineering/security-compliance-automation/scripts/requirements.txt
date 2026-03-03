@@ -10,4 +10,3 @@ boto3>=1.28.0
 
 # Auto Remediation
 kubernetes>=28.1.0
-

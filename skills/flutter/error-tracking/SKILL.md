@@ -102,14 +102,14 @@ dependencies:
 
   # Sentry
   sentry_flutter: ^7.14.0
-  
+
   # Firebase Crashlytics
   firebase_core: ^2.24.2
   firebase_crashlytics: ^3.4.8
-  
+
   # Logging
   logger: ^2.0.2
-  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -131,28 +131,28 @@ class SentryService {
     await SentryFlutter.init(
       (options) {
         options.dsn = 'YOUR_SENTRY_DSN_HERE';
-        
+
         // Environment
         options.environment = kReleaseMode ? 'production' : 'development';
-        
+
         // Release versioning
         options.release = 'myapp@1.0.0+1';
         options.dist = '1';
-        
+
         // Performance monitoring
         options.tracesSampleRate = kReleaseMode ? 0.1 : 1.0;
         options.profilesSampleRate = 0.1;
-        
+
         // Debug options
         options.debug = kDebugMode;
-        
+
         // Attach screenshots on errors
         options.attachScreenshot = true;
         options.screenshotQuality = SentryScreenshotQuality.medium;
-        
+
         // Attach view hierarchy
         options.attachViewHierarchy = true;
-        
+
         // Filter sensitive data
         options.beforeSend = (event, hint) {
           // Remove sensitive data
@@ -162,7 +162,7 @@ class SentryService {
           }
           return event;
         };
-        
+
         // Filter breadcrumbs
         options.beforeBreadcrumb = (breadcrumb, hint) {
           // Don't log debug breadcrumbs in production
@@ -188,11 +188,11 @@ class SentryService {
       stackTrace: stackTrace,
       withScope: (scope) {
         scope.level = level;
-        
+
         if (hint != null) {
           scope.setTag('hint', hint);
         }
-        
+
         if (extra != null) {
           extra.forEach((key, value) {
             scope.setExtra(key, value);
@@ -339,7 +339,7 @@ class SentryHttpInterceptor extends Interceptor {
         'url': options.uri.toString(),
       },
     );
-    
+
     handler.next(options);
   }
 
@@ -356,7 +356,7 @@ class SentryHttpInterceptor extends Interceptor {
         'url': response.requestOptions.uri.toString(),
       },
     );
-    
+
     handler.next(response);
   }
 
@@ -375,7 +375,7 @@ class SentryHttpInterceptor extends Interceptor {
       },
       level: SentryLevel.error,
     );
-    
+
     handler.next(err);
   }
 }
@@ -932,7 +932,6 @@ cd ..
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,200+
-

@@ -11,10 +11,10 @@ Analyze AWS resources and identify optimization opportunities:
 Usage:
     # Find idle instances
     python resource_optimizer.py idle --cpu-threshold 10
-    
+
     # Find rightsizing opportunities
     python resource_optimizer.py rightsize
-    
+
     # Find unused volumes
     python resource_optimizer.py unused-volumes
 """
@@ -35,18 +35,18 @@ except ImportError:
 class ResourceOptimizer:
     """
     Analyze AWS resources and identify optimization opportunities.
-    
+
     Provides methods to:
     - Find idle instances
     - Find rightsizing opportunities
     - Find unused resources
     - Estimate cost savings
     """
-    
+
     def __init__(self, profile: Optional[str] = None, region: Optional[str] = None):
         """
         Initialize Resource Optimizer.
-        
+
         Args:
             profile: AWS profile name (optional)
             region: AWS region (optional, analyzes all regions if not specified)
@@ -63,28 +63,28 @@ class ResourceOptimizer:
     ) -> List[Dict]:
         """
         Find EC2 instances with low CPU utilization.
-        
+
         Args:
             cpu_threshold: CPU utilization threshold (default: 10%)
             days: Number of days to analyze (default: 7)
-            
+
         Returns:
             List of idle instances with details
         """
         print(f"🔍 Analyzing instances in {self.region}...")
-        
+
         try:
             instances = self.ec2_client.describe_instances()['Reservations']
             idle_instances = []
-            
+
             for reservation in instances:
                 for instance in reservation['Instances']:
                     if instance['State']['Name'] != 'running':
                         continue
-                    
+
                     instance_id = instance['InstanceId']
                     instance_type = instance['InstanceType']
-                    
+
                     # Check CPU utilization
                     try:
                         metrics = self.cloudwatch.get_metric_statistics(
@@ -98,13 +98,13 @@ class ResourceOptimizer:
                             Period=3600,  # 1 hour
                             Statistics=['Average'],
                         )
-                        
+
                         avg_cpu = self._calculate_average(metrics['Datapoints'])
-                        
+
                         if avg_cpu < cpu_threshold:
                             estimated_cost = self._estimate_monthly_cost(instance_type)
                             potential_savings = estimated_cost * 0.7  # Assume 70% savings if stopped
-                            
+
                             idle_instances.append({
                                 'instance_id': instance_id,
                                 'instance_type': instance_type,
@@ -116,9 +116,9 @@ class ResourceOptimizer:
                     except Exception as e:
                         print(f"⚠️  Warning: Could not get metrics for {instance_id}: {e}")
                         continue
-            
+
             return idle_instances
-            
+
         except ClientError as e:
             print(f"❌ AWS API Error: {e}", file=sys.stderr)
             raise
@@ -126,22 +126,22 @@ class ResourceOptimizer:
     def find_unused_volumes(self) -> List[Dict]:
         """
         Find unused EBS volumes (not attached to any instance).
-        
+
         Returns:
             List of unused volumes
         """
         print(f"🔍 Analyzing volumes in {self.region}...")
-        
+
         try:
             volumes = self.ec2_client.describe_volumes()['Volumes']
             unused_volumes = []
-            
+
             for volume in volumes:
                 if not volume['Attachments']:
                     size_gb = volume['Size']
                     volume_type = volume['VolumeType']
                     estimated_cost = self._estimate_volume_cost(size_gb, volume_type)
-                    
+
                     unused_volumes.append({
                         'volume_id': volume['VolumeId'],
                         'size_gb': size_gb,
@@ -149,9 +149,9 @@ class ResourceOptimizer:
                         'estimated_monthly_cost': estimated_cost,
                         'region': self.region,
                     })
-            
+
             return unused_volumes
-            
+
         except ClientError as e:
             print(f"❌ AWS API Error: {e}", file=sys.stderr)
             raise
@@ -164,29 +164,29 @@ class ResourceOptimizer:
     ) -> List[Dict]:
         """
         Find instances that could be downsized or upsized.
-        
+
         Args:
             cpu_threshold_low: CPU threshold for downsizing (default: 20%)
             cpu_threshold_high: CPU threshold for upsizing (default: 80%)
             days: Number of days to analyze
-            
+
         Returns:
             List of rightsizing opportunities
         """
         print(f"🔍 Analyzing rightsizing opportunities in {self.region}...")
-        
+
         try:
             instances = self.ec2_client.describe_instances()['Reservations']
             opportunities = []
-            
+
             for reservation in instances:
                 for instance in reservation['Instances']:
                     if instance['State']['Name'] != 'running':
                         continue
-                    
+
                     instance_id = instance['InstanceId']
                     instance_type = instance['InstanceType']
-                    
+
                     try:
                         metrics = self.cloudwatch.get_metric_statistics(
                             Namespace='AWS/EC2',
@@ -199,13 +199,13 @@ class ResourceOptimizer:
                             Period=3600,
                             Statistics=['Average'],
                         )
-                        
+
                         avg_cpu = self._calculate_average(metrics['Datapoints'])
                         current_cost = self._estimate_monthly_cost(instance_type)
-                        
+
                         recommendation = None
                         potential_savings = 0.0
-                        
+
                         if avg_cpu < cpu_threshold_low:
                             recommendation = "downsize"
                             # Estimate 30% cost reduction for downsizing
@@ -214,7 +214,7 @@ class ResourceOptimizer:
                             recommendation = "upsize"
                             # Upsizing costs more, so negative savings
                             potential_savings = -current_cost * 0.2
-                        
+
                         if recommendation:
                             opportunities.append({
                                 'instance_id': instance_id,
@@ -228,9 +228,9 @@ class ResourceOptimizer:
                     except Exception as e:
                         print(f"⚠️  Warning: Could not analyze {instance_id}: {e}")
                         continue
-            
+
             return opportunities
-            
+
         except ClientError as e:
             print(f"❌ AWS API Error: {e}", file=sys.stderr)
             raise
@@ -244,7 +244,7 @@ class ResourceOptimizer:
     def _estimate_monthly_cost(self, instance_type: str) -> float:
         """
         Estimate monthly cost for instance type.
-        
+
         Note: This is a simplified estimation. For accurate costs,
         use AWS Pricing API or Cost Explorer.
         """
@@ -262,13 +262,13 @@ class ResourceOptimizer:
             'c5.large': 68.0,
             'c5.xlarge': 136.0,
         }
-        
+
         return cost_map.get(instance_type, 100.0)  # Default estimate
 
     def _estimate_volume_cost(self, size_gb: int, volume_type: str) -> float:
         """
         Estimate monthly cost for EBS volume.
-        
+
         Args:
             size_gb: Volume size in GB
             volume_type: Volume type (gp2, gp3, io1, etc.)
@@ -282,7 +282,7 @@ class ResourceOptimizer:
             'st1': 0.045,
             'sc1': 0.025,
         }
-        
+
         base_cost = cost_per_gb.get(volume_type, 0.10)
         return size_gb * base_cost
 
@@ -291,10 +291,10 @@ def format_idle_instances(instances: List[Dict]) -> str:
     """Format idle instances for display."""
     if not instances:
         return "✅ No idle instances found"
-    
+
     output = [f"\n🔍 Found {len(instances)} idle instance(s):\n"]
     total_savings = 0.0
-    
+
     for inst in instances:
         output.append(f"  Instance: {inst['instance_id']}")
         output.append(f"    Type: {inst['instance_type']}")
@@ -303,9 +303,9 @@ def format_idle_instances(instances: List[Dict]) -> str:
         output.append(f"    Potential Savings: ${inst['potential_savings']:.2f}")
         output.append("")
         total_savings += inst['potential_savings']
-    
+
     output.append(f"  💰 Total Potential Savings: ${total_savings:.2f}/month")
-    
+
     return "\n".join(output)
 
 
@@ -315,26 +315,26 @@ def main():
         description="AWS Resource Optimizer - Find cost optimization opportunities",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
+
     parser.add_argument(
         "--profile",
         help="AWS profile name"
     )
-    
+
     parser.add_argument(
         "--region",
         help="AWS region (default: all regions)"
     )
-    
+
     parser.add_argument(
         "--days",
         type=int,
         default=7,
         help="Number of days to analyze (default: 7)"
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
-    
+
     # Idle instances
     idle_parser = subparsers.add_parser("idle", help="Find idle instances")
     idle_parser.add_argument(
@@ -343,32 +343,32 @@ def main():
         default=10.0,
         help="CPU utilization threshold (default: 10%%)"
     )
-    
+
     # Rightsizing
     subparsers.add_parser("rightsize", help="Find rightsizing opportunities")
-    
+
     # Unused volumes
     subparsers.add_parser("unused-volumes", help="Find unused EBS volumes")
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         return 1
-    
+
     try:
         optimizer = ResourceOptimizer(profile=args.profile, region=args.region)
-        
+
         if args.command == "idle":
             instances = optimizer.find_idle_instances(
                 cpu_threshold=args.cpu_threshold,
                 days=args.days
             )
             print(format_idle_instances(instances))
-            
+
         elif args.command == "rightsize":
             opportunities = optimizer.find_rightsizing_opportunities(days=args.days)
-            
+
             if not opportunities:
                 print("✅ No rightsizing opportunities found")
             else:
@@ -381,10 +381,10 @@ def main():
                     print(f"    Current Cost: ${opp['current_monthly_cost']:.2f}/month")
                     print(f"    Potential Savings: ${opp['potential_savings']:.2f}/month")
                     print()
-                    
+
         elif args.command == "unused-volumes":
             volumes = optimizer.find_unused_volumes()
-            
+
             if not volumes:
                 print("✅ No unused volumes found")
             else:
@@ -398,9 +398,9 @@ def main():
                     print()
                     total_cost += vol['estimated_monthly_cost']
                 print(f"  💰 Total Monthly Cost: ${total_cost:.2f}")
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
@@ -408,4 +408,3 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
-

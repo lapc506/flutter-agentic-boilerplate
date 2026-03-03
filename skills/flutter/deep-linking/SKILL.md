@@ -108,26 +108,26 @@ dependencies:
 class RoutePaths {
   // Root
   static const home = '/';
-  
+
   // Authentication
   static const login = '/login';
   static const signup = '/signup';
   static const resetPassword = '/reset-password';
-  
+
   // Content
   static const product = '/product/:id';
   static const productDetails = '/product/:id/details';
   static const category = '/category/:slug';
-  
+
   // User
   static const profile = '/profile/:userId';
   static const settings = '/settings';
-  
+
   // Deep link specific
   static const share = '/share/:type/:id';
   static const invite = '/invite/:code';
   static const promo = '/promo/:code';
-  
+
   // Error
   static const notFound = '/404';
 }
@@ -144,7 +144,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: RoutePaths.home,
     debugLogDiagnostics: true,
-    
+
     // Redirect logic
     redirect: (context, state) {
       final isAuthenticated = AuthService.isAuthenticated;
@@ -163,12 +163,12 @@ class AppRouter {
 
       return null;
     },
-    
+
     // Error handling
     errorBuilder: (context, state) => NotFoundScreen(
       error: state.error.toString(),
     ),
-    
+
     // Routes
     routes: [
       GoRoute(
@@ -176,7 +176,7 @@ class AppRouter {
         name: 'home',
         builder: (context, state) => const HomeScreen(),
       ),
-      
+
       // Authentication
       GoRoute(
         path: RoutePaths.login,
@@ -186,13 +186,13 @@ class AppRouter {
           return LoginScreen(redirectTo: redirect);
         },
       ),
-      
+
       GoRoute(
         path: RoutePaths.signup,
         name: 'signup',
         builder: (context, state) => const SignupScreen(),
       ),
-      
+
       // Product with nested routes
       GoRoute(
         path: RoutePaths.product,
@@ -212,7 +212,7 @@ class AppRouter {
           ),
         ],
       ),
-      
+
       // Category
       GoRoute(
         path: RoutePaths.category,
@@ -223,7 +223,7 @@ class AppRouter {
           return CategoryScreen(slug: slug, sortBy: sort);
         },
       ),
-      
+
       // Profile
       GoRoute(
         path: RoutePaths.profile,
@@ -233,7 +233,7 @@ class AppRouter {
           return ProfileScreen(userId: userId);
         },
       ),
-      
+
       // Share (deep link)
       GoRoute(
         path: RoutePaths.share,
@@ -244,7 +244,7 @@ class AppRouter {
           return ShareScreen(contentType: type, contentId: id);
         },
       ),
-      
+
       // Invite code
       GoRoute(
         path: RoutePaths.invite,
@@ -254,7 +254,7 @@ class AppRouter {
           return InviteScreen(inviteCode: code);
         },
       ),
-      
+
       // Promo code
       GoRoute(
         path: RoutePaths.promo,
@@ -384,7 +384,7 @@ class AppRouter {
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop">
-            
+
             <!-- Deep Links (Custom Scheme) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -398,7 +398,7 @@ class AppRouter {
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                
+
                 <data
                     android:scheme="https"
                     android:host="yourdomain.com"
@@ -688,7 +688,6 @@ adb shell pm verify-app-links --re-verify com.example.myapp
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

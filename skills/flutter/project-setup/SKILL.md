@@ -178,10 +178,10 @@ abstract class EnvConfig {
 class DevConfig implements EnvConfig {
   @override
   String get apiBaseUrl => 'https://dev-api.example.com';
-  
+
   @override
   String get appName => 'MyApp DEV';
-  
+
   @override
   bool get isDevelopment => true;
 }
@@ -190,10 +190,10 @@ class DevConfig implements EnvConfig {
 class ProdConfig implements EnvConfig {
   @override
   String get apiBaseUrl => 'https://api.example.com';
-  
+
   @override
   String get appName => 'MyApp';
-  
+
   @override
   bool get isDevelopment => false;
 }
@@ -220,7 +220,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -361,6 +361,5 @@ Este skill incluye los siguientes archivos:
 
 ---
 
-**Última actualización:** Diciembre 2025  
+**Última actualización:** Diciembre 2025
 **Versión:** 1.0.0
-

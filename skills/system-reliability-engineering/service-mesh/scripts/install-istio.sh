@@ -41,4 +41,3 @@ echo "Next steps:"
 echo "  1. Label namespace for injection: kubectl label namespace <namespace> istio-injection=enabled"
 echo "  2. Deploy your application"
 echo "  3. Verify sidecars: kubectl get pods -n <namespace>"
-

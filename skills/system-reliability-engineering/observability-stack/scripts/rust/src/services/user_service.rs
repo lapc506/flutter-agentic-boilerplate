@@ -35,7 +35,7 @@ impl UserService {
     pub async fn get_user_by_id(&self, user_id: String) -> Result<User, ServiceError> {
         let tracer = global::tracer("user-service");
         let mut span = tracer.start("getUserById");
-        
+
         span.set_attribute(KeyValue::new("user.id", user_id.clone()));
         span.set_attribute(KeyValue::new("operation.type", "read"));
 
@@ -61,7 +61,7 @@ impl UserService {
     async fn fetch_user_from_db(&self, user_id: &str) -> Result<User, ServiceError> {
         // Simulate database query
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
+
         Ok(User {
             id: user_id.to_string(),
             name: "John Doe".to_string(),
@@ -69,4 +69,3 @@ impl UserService {
         })
     }
 }
-

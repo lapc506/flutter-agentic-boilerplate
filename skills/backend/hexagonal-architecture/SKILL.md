@@ -189,17 +189,17 @@ export class TypeOrmUserRepository implements IUserRepository {
     dbUser.name = user.getName();
     dbUser.email = user.getEmail();
     dbUser.isActive = user.getIsActive();
-    
+
     await this.repository.save(dbUser);
   }
 
   async findByEmail(email: string): Promise<User | null> {
     const dbUser = await this.repository.findOneBy({ email });
     if (!dbUser) return null;
-    
+
     return new User(dbUser.id, dbUser.name, dbUser.email, dbUser.isActive);
   }
-  
+
   // ... rest of methods
 }
 ```
@@ -265,10 +265,10 @@ describe('CreateUserUseCase', () => {
       findByEmail: jest.fn().mockResolvedValue(null),
       findById: jest.fn()
     };
-    
+
     const useCase = new CreateUserUseCase(mockRepo);
     await useCase.execute({ name: 'John', email: 'john@example.com' });
-    
+
     expect(mockRepo.save).toHaveBeenCalled();
   });
 });

@@ -102,4 +102,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Procedimientos de failover
 - Testing de DR
 - Configuración multi-región
-

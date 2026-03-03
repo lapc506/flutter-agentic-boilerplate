@@ -16,4 +16,3 @@ boto3>=1.28.0
 # - AWS CLI configured with credentials
 # - Or environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 # - Or IAM role (if running on EC2)
-

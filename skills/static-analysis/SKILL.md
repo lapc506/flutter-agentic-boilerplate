@@ -7,7 +7,7 @@
 | **ID** | `static-analysis` |
 | **Nivel** | 🟡 Intermedio |
 | **Versión** | 2.0.0 |
-| **Keywords** | `static-analysis`, `analyze`, `lint`, `code-quality`, `sast`, `security-scan`, `multi-language-linting` |
+| **Keywords** | `static-analysis`, `analyze`, `lint`, `code-quality`, `sast`, `security-scan`, `multi-language-linting`, `super-linter` |
 | **Lenguajes Soportados** | Dart, Python, Go, Bash, PowerShell, Rust, JavaScript/Node.js |
 | **Referencia** | [Dart Analysis Tools](https://dart.dev/tools/analysis) |
 
@@ -31,6 +31,7 @@
 - `golangci-lint`
 - `shellcheck`
 - `clippy`
+- `super-linter`
 - `@skill:static-analysis`
 
 ### Ejemplos de Prompts
@@ -131,7 +132,25 @@ cd ..
 cd mobile
 dart format .
 cd ..
+
+# Ejecutar pruebas unitarias
+cd mobile
+flutter test
+cd ..
+
+# Ejecutar pruebas con cobertura
+cd mobile
+flutter test --coverage
+cd ..
+
+# Linting completo (Análisis + Formato)
+cd mobile
+flutter analyze && dart format --set-exit-if-changed .
+cd ..
 ```
+
+> [!TIP]
+> Si tu proyecto tiene un script SAST centralizado (e.g., `flutter-sast.sh`), úsalo para ejecutar estas operaciones de forma consistente.
 
 #### Configuración: analysis_options.yaml
 
@@ -159,11 +178,11 @@ linter:
     - avoid_unnecessary_containers
     - prefer_const_constructors
     - prefer_const_literals_to_create_immutables
-    
+
     # Seguridad
     - avoid_web_libraries_in_flutter
     - no_duplicate_case_values
-    
+
     # Calidad
     - prefer_single_quotes
     - require_trailing_commas
@@ -183,18 +202,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
           dart-version: '3.0.0'
-      
+
       - name: Install dependencies
         run: dart pub get
-      
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
-      
+
       - name: Analyze code
         run: dart analyze --fatal-infos
 ```
@@ -321,23 +340,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           pip install ruff black mypy
-      
+
       - name: Run Ruff
         run: ruff check .
-      
+
       - name: Check formatting with Black
         run: black --check .
-      
+
       - name: Run MyPy
         run: mypy .
 ```
@@ -465,18 +484,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
           args: --timeout=5m
-      
+
       - name: Run go vet
         run: go vet ./...
 ```
@@ -543,20 +562,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install ShellCheck
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck
-      
+
       - name: Run ShellCheck
         run: |
           find . -name "*.sh" -not -path "*/vendor/*" -exec shellcheck {} +
-      
+
       - name: Install shfmt
         run: |
           go install mvdan.cc/sh/v3/cmd/shfmt@latest
-      
+
       - name: Check formatting with shfmt
         run: |
           shfmt -d .
@@ -606,13 +625,13 @@ Invoke-ScriptAnalyzer -Path scripts/*.ps1 -IncludeRule PSPlaceOpenBrace, PSPlace
 @{
     # Incluir reglas por defecto
     IncludeDefaultRules = $true
-    
+
     # Excluir reglas específicas
     ExcludeRules = @(
         'PSAvoidUsingWriteHost',
         'PSUseShouldProcessForStateChangingFunctions'
     )
-    
+
     # Configuración de reglas
     Rules = @{
         PSAvoidUsingCmdletAliases = @{
@@ -669,12 +688,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: |
           Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
-      
+
       - name: Run PSScriptAnalyzer
         shell: pwsh
         run: |
@@ -769,13 +788,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           components: rustfmt, clippy
-      
+
       - name: Cache cargo registry
         uses: actions/cache@v3
         with:
@@ -786,16 +805,16 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      
+
       - name: Run Clippy
         run: cargo clippy -- -D warnings
-      
+
       - name: Check formatting
         run: cargo fmt --check
-      
+
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked
-      
+
       - name: Run cargo audit
         run: cargo audit
 ```
@@ -934,19 +953,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run ESLint
         run: npx eslint .
-      
+
       - name: Check Prettier formatting
         run: npx prettier --check .
 ```
@@ -976,16 +995,16 @@ rules:
   - id: sql-injection
     severity: high
     enabled: true
-  
+
   - id: xss-vulnerability
     severity: high
     enabled: true
-  
+
   # Reglas de calidad
   - id: code-smell
     severity: medium
     enabled: true
-  
+
   - id: performance-issue
     severity: low
     enabled: true
@@ -1008,7 +1027,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run Datadog Static Analysis
         uses: datadog/static-analysis-action@v1
         with:
@@ -1067,7 +1086,7 @@ rules:
     - performance
     - best-practices
     - code-quality
-  
+
   disabled:
     - style-only
 
@@ -1135,15 +1154,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install CodeRabbit CLI
         run: npm install -g @coderabbitai/cli
-      
+
       - name: Run CodeRabbit Review
         env:
           CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
@@ -1152,7 +1171,7 @@ jobs:
             --range ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} \
             --format json \
             --output coderabbit-report.json
-      
+
       - name: Upload Report
         uses: actions/upload-artifact@v3
         with:
@@ -1229,7 +1248,7 @@ linter:
     # Fase 1: Reglas críticas
     - avoid_print
     - avoid_unnecessary_containers
-    
+
     # Fase 2: Agregar después de estabilizar
     # - prefer_const_constructors
     # - require_trailing_commas
@@ -1243,11 +1262,11 @@ analyzer:
     # Código generado
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    
+
     # Dependencias externas
     - ".dart_tool/**"
     - "build/**"
-    
+
     # Archivos de configuración
     - "**/*.config.dart"
 ```
@@ -1260,11 +1279,11 @@ analyzer:
     # Errores críticos
     missing_return: error
     invalid_assignment: error
-    
+
     # Warnings importantes
     unused_element: warning
     dead_code: warning
-    
+
     # Infos informativos
     todo: info
 ```
@@ -1519,6 +1538,7 @@ coderabbit review --range HEAD~1..HEAD
 - [TypeScript ESLint](https://typescript-eslint.io/)
 
 ### Herramientas Generales
+- [GitHub Super-Linter](https://github.com/super-linter/super-linter)
 - [pre-commit Framework](https://pre-commit.com/)
 - [Datadog Static Analysis Rules](https://docs.datadoghq.com/es/security/code_security/static_analysis/static_analysis_rules/)
 - [CodeRabbit CLI Documentation](https://docs.coderabbit.ai/cli/overview)
@@ -1644,64 +1664,64 @@ jobs:
     strategy:
       matrix:
         language: [dart, python, go, bash, rust, javascript]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       # Dart
       - name: Setup Dart
         if: matrix.language == 'dart'
         uses: dart-lang/setup-dart@v1
-      
+
       - name: Run Dart Analysis
         if: matrix.language == 'dart'
         run: |
           dart pub get
           dart format --set-exit-if-changed .
           dart analyze --fatal-infos
-      
+
       # Python
       - name: Setup Python
         if: matrix.language == 'python'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install Python Linters
         if: matrix.language == 'python'
         run: |
           pip install ruff black mypy
-      
+
       - name: Run Python Linters
         if: matrix.language == 'python'
         run: |
           ruff check .
           black --check .
           mypy .
-      
+
       # Go
       - name: Setup Go
         if: matrix.language == 'go'
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      
+
       - name: Run Go Linters
         if: matrix.language == 'go'
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-      
+
       # Bash
       - name: Install ShellCheck
         if: matrix.language == 'bash'
         run: sudo apt-get install -y shellcheck
-      
+
       - name: Run ShellCheck
         if: matrix.language == 'bash'
         run: |
           find . -name "*.sh" -exec shellcheck {} +
-      
+
       # Rust
       - name: Setup Rust
         if: matrix.language == 'rust'
@@ -1709,25 +1729,25 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      
+
       - name: Run Rust Linters
         if: matrix.language == 'rust'
         run: |
           cargo clippy -- -D warnings
           cargo fmt --check
           cargo audit
-      
+
       # JavaScript/Node.js
       - name: Setup Node.js
         if: matrix.language == 'javascript'
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install Node.js Dependencies
         if: matrix.language == 'javascript'
         run: npm ci
-      
+
       - name: Run JavaScript Linters
         if: matrix.language == 'javascript'
         run: |
@@ -1777,7 +1797,6 @@ jobs:
 
 ---
 
-**Última actualización:** Diciembre 2025  
-**Versión:** 2.0.0  
+**Última actualización:** Diciembre 2025
+**Versión:** 2.0.0
 **Cambios v2.0.0:** Agregado soporte completo para linting multi-lenguaje (Python, Go, Bash, PowerShell, Rust, JavaScript/Node.js)
-

@@ -59,12 +59,12 @@ $SkillsSubdirs = Get-ChildItem -Path $SkillsDir -Directory
 foreach ($SkillDir in $SkillsSubdirs) {
     $SkillName = $SkillDir.Name
     $ClaudeSkillSymlink = Join-Path $ClaudeSkillsDir $SkillName
-    
+
     if (Test-Path $ClaudeSkillSymlink) {
         Write-Host "⚠️  Ya existe: $ClaudeSkillSymlink" -ForegroundColor Yellow
         Remove-Item $ClaudeSkillSymlink -Force -ErrorAction SilentlyContinue
     }
-    
+
     New-Item -ItemType SymbolicLink -Path $ClaudeSkillSymlink -Target $SkillDir.FullName | Out-Null
     Write-Host "✅ Symlink creado: $ClaudeSkillSymlink -> $($SkillDir.FullName)" -ForegroundColor Green
 }
@@ -96,7 +96,7 @@ if (-not (Test-Path $GeminiExtensionJson)) {
         author = "Flutter Agent Skills Team"
         repository = "https://github.com/your-org/flutter-agent-skills"
     } | ConvertTo-Json -Depth 10
-    
+
     # Como es un symlink, necesitamos crear el JSON en el directorio real
     $ExtensionJsonPath = Join-Path $SkillsDir "gemini-extension.json"
     $ExtensionJson | Out-File -FilePath $ExtensionJsonPath -Encoding UTF8
@@ -114,12 +114,12 @@ if (-not (Test-Path $CodexSkillsDir)) {
 foreach ($SkillDir in $SkillsSubdirs) {
     $SkillName = $SkillDir.Name
     $CodexSkillSymlink = Join-Path $CodexSkillsDir $SkillName
-    
+
     if (Test-Path $CodexSkillSymlink) {
         Write-Host "⚠️  Ya existe: $CodexSkillSymlink" -ForegroundColor Yellow
         Remove-Item $CodexSkillSymlink -Force -ErrorAction SilentlyContinue
     }
-    
+
     New-Item -ItemType SymbolicLink -Path $CodexSkillSymlink -Target $SkillDir.FullName | Out-Null
     Write-Host "✅ Symlink creado: $CodexSkillSymlink -> $($SkillDir.FullName)" -ForegroundColor Green
 }
@@ -134,4 +134,3 @@ Write-Host "  • Claude Skills: .claude/skills/*" -ForegroundColor Gray
 Write-Host "  • Gemini Extensions: ~/.gemini/extensions/flutter-agent-skills" -ForegroundColor Gray
 Write-Host "  • OpenAI Codex: codex/skills/*" -ForegroundColor Gray
 Write-Host ""
-

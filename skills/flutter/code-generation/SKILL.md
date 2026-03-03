@@ -127,28 +127,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Code Generation - Runtime dependencies
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   injectable: ^2.3.2
   get_it: ^7.6.4
   auto_route: ^7.8.4
-  
+
   # Utilities
   equatable: ^2.0.5  # Optional: for non-freezed classes
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
+
   # Code Generation - Dev dependencies
   build_runner: ^2.4.6
   freezed: ^2.4.5
   json_serializable: ^6.7.1
   injectable_generator: ^2.4.1
   auto_route_generator: ^7.3.2
-  
+
   # Linting
   flutter_lints: ^3.0.0
 ```
@@ -206,7 +206,7 @@ targets:
           copy_with: true
           equal: true
           to_string: true
-      
+
       # JSON Serializable
       json_serializable:
         enabled: true
@@ -221,13 +221,13 @@ targets:
           field_rename: none
           generic_argument_factories: false
           ignore_unannotated: false
-      
+
       # Injectable
       injectable_generator:injectable_builder:
         enabled: true
         options:
           auto_register: true
-      
+
       # Auto Route
       auto_route_generator:
         enabled: true
@@ -240,7 +240,7 @@ global_options:
   # Cache builds
   build_cache:
     enabled: true
-  
+
   # Builders a ejecutar
   runs_before:
     - freezed
@@ -384,7 +384,7 @@ class Product with _$Product {
 
   // Custom getters
   bool get isAvailable => stock > 0;
-  
+
   bool get isNew {
     if (createdAt == null) return false;
     final daysSinceCreation = DateTime.now().difference(createdAt!).inDays;
@@ -521,13 +521,13 @@ part 'simple_model.g.dart';
 class SimpleModel {
   final String id;
   final String name;
-  
+
   @JsonKey(name: 'email_address')  // Map to different JSON key
   final String email;
-  
+
   @JsonKey(includeIfNull: false)  // Omit if null
   final String? phone;
-  
+
   @JsonKey(defaultValue: false)  // Default value
   final bool isActive;
 
@@ -577,7 +577,7 @@ class UserRoleConverter implements JsonConverter<UserRole, String> {
 @JsonSerializable()
 class User {
   final String id;
-  
+
   @UserRoleConverter()
   final UserRole role;
 
@@ -973,7 +973,7 @@ class AuthGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) {
     final isAuthenticated = checkAuth(); // Your auth logic
-    
+
     if (isAuthenticated) {
       resolver.next(true);
     } else {
@@ -1210,24 +1210,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.0'
           cache: true
-      
+
       - name: Get dependencies
         working-directory: mobile
         run: flutter pub get
-      
+
       - name: Generate code
         working-directory: mobile
         run: flutter pub run build_runner build --delete-conflicting-outputs
-      
+
       - name: Analyze
         working-directory: mobile
         run: flutter analyze
-      
+
       - name: Test
         run: flutter test
 ```
@@ -1622,7 +1622,6 @@ Las siguientes librerías están disponibles en Context7:
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,250+
-

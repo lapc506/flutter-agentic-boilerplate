@@ -54,7 +54,7 @@ powershell -ExecutionPolicy Bypass -File .\validate_android_setup.ps1
 
 Los scripts de Linux y macOS son similares pero tienen diferencias en:
 
-- **Rutas de detección automática**: 
+- **Rutas de detección automática**:
   - Linux: `$HOME/Android/Sdk`, `/opt/android-sdk`, `/usr/local/android-sdk`
   - macOS: `$HOME/Library/Android/sdk`, `$HOME/Android/Sdk`, `/opt/android-sdk`
 - **Archivos de configuración recomendados**:
@@ -191,5 +191,3 @@ Estos scripts pueden usarse en pipelines de CI/CD para validar el entorno antes 
 - [Android SDK Setup Guide](https://developer.android.com/studio/command-line)
 - [Flutter Android Setup](https://docs.flutter.dev/get-started/install)
 - [AVD Manager Documentation](https://developer.android.com/studio/run/managing-avds)
-
-

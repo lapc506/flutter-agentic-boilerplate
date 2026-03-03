@@ -126,4 +126,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Elasticsearch + Fluentd
 - LogQL queries
 - Retention policies
-

@@ -180,4 +180,3 @@ Crea un proyecto con clean-arch + testing + cicd para una app de finanzas
 ---
 
 **💡 Tip:** Comienza con [`project-setup`](./project-setup/) seguido de [`mvvm`](./mvvm/) si eres nuevo en arquitecturas Flutter.
-

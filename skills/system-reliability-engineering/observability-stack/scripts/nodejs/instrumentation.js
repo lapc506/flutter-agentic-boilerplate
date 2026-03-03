@@ -1,12 +1,12 @@
 /**
  * OpenTelemetry Instrumentation for Node.js
- * 
+ *
  * Application instrumentation with OpenTelemetry for distributed tracing.
- * 
+ *
  * Usage:
  *   // Import at the start of your application
  *   require('./instrumentation');
- *   
+ *
  *   // Or with environment variables:
  *   // OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces node app.js
  */
@@ -62,4 +62,3 @@ process.on('SIGTERM', () => {
 });
 
 module.exports = sdk;
-

@@ -614,6 +614,5 @@ Este documento debe actualizarse cuando:
 
 ---
 
-**Última actualización:** Diciembre 2025  
+**Última actualización:** Diciembre 2025
 **Versión:** 1.0.0
-

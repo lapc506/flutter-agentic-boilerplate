@@ -103,19 +103,19 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # GraphQL Client
   graphql_flutter: ^5.1.2
-  
+
   # Code Generation (opcional)
   gql: ^1.0.0
   ferry: ^0.15.0
   ferry_flutter: ^0.9.0
-  
+
   # Utils
   equatable: ^2.0.5
   dartz: ^0.10.1
-  
+
   # State Management
   flutter_bloc: ^8.1.3
 
@@ -206,7 +206,7 @@ class GraphQLConfig {
 
   static Link get link {
     final Link httpLinkWithAuth = authLink.concat(httpLink);
-    
+
     // Combinar HTTP y WebSocket links
     return Link.split(
       (request) => request.isSubscription,
@@ -715,7 +715,7 @@ class ProductsScreen extends StatelessWidget {
 // Mutation Example
 class CreateProductButton extends StatelessWidget {
   final ProductModel product;
-  
+
   const CreateProductButton({required this.product});
 
   static const String _createProductMutation = r'''
@@ -773,7 +773,7 @@ class CreateProductButton extends StatelessWidget {
 // Subscription Example
 class ProductDetailScreen extends StatelessWidget {
   final String productId;
-  
+
   const ProductDetailScreen({required this.productId});
 
   static const String _productUpdatedSubscription = r'''
@@ -886,6 +886,5 @@ if (result.hasException) {
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

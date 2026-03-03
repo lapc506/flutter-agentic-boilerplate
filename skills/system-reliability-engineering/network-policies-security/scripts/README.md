@@ -45,4 +45,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Egress e ingress rules
 - Calico y Cilium
 - Security best practices
-

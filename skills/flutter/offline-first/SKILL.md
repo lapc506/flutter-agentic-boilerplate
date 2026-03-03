@@ -103,22 +103,22 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Local Database
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   sqflite: ^2.3.0
   path: ^1.8.3
-  
+
   # Networking
   dio: ^5.4.0
   connectivity_plus: ^5.0.2
-  
+
   # Utils
   dartz: ^0.10.1
   equatable: ^2.0.5
   uuid: ^4.2.2
-  
+
   # State Management
   flutter_bloc: ^8.1.3
 
@@ -146,10 +146,10 @@ enum ConnectivityStatus {
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
   final Dio _dio;
-  
+
   late StreamController<ConnectivityStatus> _statusController;
   Stream<ConnectivityStatus> get statusStream => _statusController.stream;
-  
+
   ConnectivityStatus _currentStatus = ConnectivityStatus.unknown;
   ConnectivityStatus get currentStatus => _currentStatus;
 
@@ -161,7 +161,7 @@ class ConnectivityService {
   void _init() {
     // Verificar conectividad inicial
     _checkConnectivity();
-    
+
     // Escuchar cambios de conectividad
     _connectivity.onConnectivityChanged.listen((result) {
       _checkConnectivity();
@@ -171,12 +171,12 @@ class ConnectivityService {
   Future<void> _checkConnectivity() async {
     try {
       final connectivityResult = await _connectivity.checkConnectivity();
-      
+
       if (connectivityResult == ConnectivityResult.none) {
         _updateStatus(ConnectivityStatus.offline);
         return;
       }
-      
+
       // Verificar conectividad real con ping al servidor
       final hasInternet = await _pingServer();
       _updateStatus(
@@ -228,11 +228,11 @@ class LocalStorage {
 
   static Future<void> init() async {
     await Hive.initFlutter();
-    
+
     // Registrar adapters
     // Hive.registerAdapter(ProductModelAdapter());
     // Hive.registerAdapter(SyncItemAdapter());
-    
+
     // Abrir boxes
     await Hive.openBox(_productsBox);
     await Hive.openBox(_syncQueueBox);
@@ -342,7 +342,7 @@ class SyncService {
   Future<void> addToQueue(SyncItem item) async {
     final box = LocalStorage.syncQueueBox;
     await box.add(item);
-    
+
     // Intentar sincronizar inmediatamente si hay conexión
     if (_connectivityService.currentStatus == ConnectivityStatus.online) {
       syncPendingItems();
@@ -449,12 +449,12 @@ class ProductsRepositoryImpl implements ProductsRepository {
     try {
       // 1. Siempre devolver datos del cache primero (Offline-First)
       final localProducts = await localDataSource.getProducts();
-      
+
       // 2. Si hay conexión, actualizar en background
       if (connectivityService.currentStatus == ConnectivityStatus.online) {
         _refreshProductsInBackground();
       }
-      
+
       // 3. Devolver datos locales inmediatamente
       return Right(localProducts.map((model) => model.toEntity()).toList());
     } catch (e) {
@@ -476,7 +476,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     try {
       // Intentar obtener del cache primero
       final localProduct = await localDataSource.getProduct(id);
-      
+
       if (localProduct != null) {
         // Actualizar en background si hay conexión
         if (connectivityService.currentStatus == ConnectivityStatus.online) {
@@ -484,14 +484,14 @@ class ProductsRepositoryImpl implements ProductsRepository {
         }
         return Right(localProduct.toEntity());
       }
-      
+
       // Si no existe localmente y hay conexión, obtener del servidor
       if (connectivityService.currentStatus == ConnectivityStatus.online) {
         final remoteProduct = await remoteDataSource.getProduct(id);
         await localDataSource.cacheProduct(remoteProduct);
         return Right(remoteProduct.toEntity());
       }
-      
+
       return Left(CacheFailure());
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -511,10 +511,10 @@ class ProductsRepositoryImpl implements ProductsRepository {
   Future<Either<Failure, Product>> createProduct(Product product) async {
     try {
       final productModel = ProductModel.fromEntity(product);
-      
+
       // 1. Guardar localmente primero
       await localDataSource.cacheProduct(productModel);
-      
+
       // 2. Si hay conexión, sincronizar inmediatamente
       if (connectivityService.currentStatus == ConnectivityStatus.online) {
         try {
@@ -540,10 +540,10 @@ class ProductsRepositoryImpl implements ProductsRepository {
   Future<Either<Failure, Product>> updateProduct(Product product) async {
     try {
       final productModel = ProductModel.fromEntity(product);
-      
+
       // Actualizar localmente
       await localDataSource.cacheProduct(productModel);
-      
+
       // Sincronizar si hay conexión o agregar a queue
       if (connectivityService.currentStatus == ConnectivityStatus.online) {
         try {
@@ -568,7 +568,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     try {
       // Eliminar localmente
       await localDataSource.deleteProduct(id);
-      
+
       // Sincronizar o agregar a queue
       if (connectivityService.currentStatus == ConnectivityStatus.online) {
         try {
@@ -579,7 +579,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
       } else {
         await _addDeleteToSyncQueue(id);
       }
-      
+
       return const Right(null);
     } catch (e) {
       return Left(CacheFailure());
@@ -593,7 +593,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
       action: action,
       data: ProductModel.fromEntity(product).toJson(),
     );
-    
+
     await syncService.addToQueue(syncItem);
   }
 
@@ -604,7 +604,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
       action: SyncAction.delete,
       data: {},
     );
-    
+
     await syncService.addToQueue(syncItem);
   }
 }
@@ -619,7 +619,7 @@ import '../network/connectivity_service.dart';
 
 class ConnectivityIndicator extends StatelessWidget {
   final ConnectivityService connectivityService;
-  
+
   const ConnectivityIndicator({
     super.key,
     required this.connectivityService,
@@ -632,11 +632,11 @@ class ConnectivityIndicator extends StatelessWidget {
       initialData: connectivityService.currentStatus,
       builder: (context, snapshot) {
         final status = snapshot.data ?? ConnectivityStatus.unknown;
-        
+
         if (status == ConnectivityStatus.online) {
           return const SizedBox.shrink();
         }
-        
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -740,6 +740,5 @@ if (localVersion != remoteVersion) {
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

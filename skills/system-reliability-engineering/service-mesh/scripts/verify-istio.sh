@@ -48,4 +48,3 @@ istioctl version 2>/dev/null || echo "⚠️  istioctl not found in PATH"
 
 echo ""
 echo "✅ Verification complete!"
-

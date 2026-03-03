@@ -61,4 +61,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Image signing
 - Security policies
 - Admission controllers
-

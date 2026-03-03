@@ -1,8 +1,8 @@
 /**
  * k6 Advanced Scenarios Test
- * 
+ *
  * Advanced load test with multiple scenarios simulating different user behaviors.
- * 
+ *
  * Usage:
  *   k6 run advanced-scenarios.js
  *   k6 run advanced-scenarios.js --env SCENARIO=browse_products
@@ -67,12 +67,12 @@ export const options = {
 export default function () {
   const scenario = __ENV.SCENARIO || __VU;
   const baseUrl = __ENV.BASE_URL || 'https://api.example.com';
-  
+
   // Determine scenario based on VU or environment variable
-  const scenarioName = __ENV.SCENARIO || 
-    (__VU <= 100 ? 'browse_products' : 
+  const scenarioName = __ENV.SCENARIO ||
+    (__VU <= 100 ? 'browse_products' :
      __VU <= 120 ? 'checkout' : 'search');
-  
+
   switch (scenarioName) {
     case 'browse_products':
       browseProducts(baseUrl);
@@ -90,17 +90,17 @@ function browseProducts(baseUrl) {
   const response = http.get(`${baseUrl}/products`, {
     tags: { name: 'BrowseProducts' },
   });
-  
+
   check(response, {
     'status is 200': (r) => r.status === 200,
   });
-  
+
   sleep(Math.random() * 3 + 1); // Random sleep 1-4s
 }
 
 function checkout(baseUrl) {
   const user = users[Math.floor(Math.random() * users.length)];
-  
+
   const response = http.post(
     `${baseUrl}/checkout`,
     JSON.stringify({
@@ -112,7 +112,7 @@ function checkout(baseUrl) {
       tags: { name: 'Checkout' },
     }
   );
-  
+
   check(response, {
     'status is 200': (r) => r.status === 200,
     'checkout successful': (r) => {
@@ -128,12 +128,12 @@ function checkout(baseUrl) {
 
 function search(baseUrl) {
   const query = ['laptop', 'phone', 'tablet'][Math.floor(Math.random() * 3)];
-  
+
   const response = http.get(
     `${baseUrl}/search?q=${query}`,
     { tags: { name: 'Search' } }
   );
-  
+
   check(response, {
     'status is 200': (r) => r.status === 200,
     'has results': (r) => {
@@ -145,7 +145,6 @@ function search(baseUrl) {
       }
     },
   });
-  
+
   sleep(0.5);
 }
-

@@ -1,8 +1,8 @@
 /**
  * Node.js Memory Profiler
- * 
+ *
  * Memory profiling and monitoring for Node.js applications.
- * 
+ *
  * Usage:
  *   node memory-profiler.js
  *   node memory-profiler.js --snapshot
@@ -21,7 +21,7 @@ class MemoryProfiler {
     const timestamp = Date.now();
     const defaultFilename = `heap-${timestamp}.heapsnapshot`;
     const filepath = filename || path.join(process.cwd(), defaultFilename);
-    
+
     heapdump.writeSnapshot(filepath, (err, filename) => {
       if (err) {
         console.error('Error taking heap snapshot:', err);
@@ -38,7 +38,7 @@ class MemoryProfiler {
     }
 
     console.log(`Starting memory monitoring (interval: ${intervalMs}ms)`);
-    
+
     this.monitoringInterval = setInterval(() => {
       const usage = process.memoryUsage();
       console.log({
@@ -76,14 +76,14 @@ class MemoryProfiler {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const profiler = new MemoryProfiler();
-  
+
   if (args.includes('--snapshot')) {
     const filename = args.find(arg => arg.startsWith('--filename'))?.split('=')[1];
     profiler.takeSnapshot(filename);
   } else if (args.includes('--monitor')) {
     const interval = parseInt(args.find(arg => arg.startsWith('--interval'))?.split('=')[1] || '5000');
     profiler.monitorMemory(interval);
-    
+
     // Keep process alive
     process.on('SIGINT', () => {
       profiler.stopMonitoring();
@@ -97,4 +97,3 @@ if (require.main === module) {
 }
 
 module.exports = MemoryProfiler;
-

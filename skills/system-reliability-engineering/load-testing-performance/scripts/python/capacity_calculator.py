@@ -29,11 +29,11 @@ class CapacityMetrics:
 
 class CapacityPlanner:
     """Capacity planning calculator."""
-    
+
     def __init__(self, metrics: CapacityMetrics, current_instances: int = 3):
         """
         Initialize capacity planner.
-        
+
         Args:
             metrics: Capacity metrics
             current_instances: Current number of instances
@@ -51,19 +51,19 @@ class CapacityPlanner:
     def estimate_max_users(self, target_error_rate: float = 0.01) -> int:
         """
         Estimate maximum users with acceptable error rate.
-        
+
         Args:
             target_error_rate: Maximum acceptable error rate
-            
+
         Returns:
             Estimated maximum users
         """
         if self.metrics.current_throughput_rps == 0:
             return 0
-        
+
         # Simple estimation: assume linear scaling until error rate threshold
         users_at_max = int(
-            self.metrics.peak_users * 
+            self.metrics.peak_users *
             (self.metrics.max_throughput_rps / self.metrics.current_throughput_rps)
         )
         return users_at_max
@@ -75,11 +75,11 @@ class CapacityPlanner:
     ) -> Dict:
         """
         Calculate resources needed for target user count.
-        
+
         Args:
             target_users: Target number of users
             target_error_rate: Maximum acceptable error rate
-            
+
         Returns:
             Dictionary with resource requirements
         """
@@ -87,22 +87,22 @@ class CapacityPlanner:
             return {
                 "error": "max_throughput_rps cannot be zero"
             }
-        
+
         current_users_per_instance = (
             self.metrics.peak_users / self.current_instances
             if self.current_instances > 0 else 0
         )
-        
+
         required_rps = target_users * self.metrics.avg_request_per_user_per_sec
         required_instances = int(
             required_rps / self.metrics.max_throughput_rps
         ) + 1  # Add buffer
-        
+
         scaling_factor = (
             required_instances / self.current_instances
             if self.current_instances > 0 else float('inf')
         )
-        
+
         return {
             "target_users": target_users,
             "required_instances": required_instances,
@@ -117,7 +117,7 @@ class CapacityPlanner:
         """Generate capacity planning report."""
         headroom = self.calculate_capacity_headroom()
         max_users = self.estimate_max_users()
-        
+
         report = []
         report.append("=" * 60)
         report.append("CAPACITY PLANNING REPORT")
@@ -131,7 +131,7 @@ class CapacityPlanner:
         report.append(f"Estimated Max Users: {max_users}")
         report.append(f"Current Instances: {self.current_instances}")
         report.append("")
-        
+
         return "\n".join(report)
 
 
@@ -141,7 +141,7 @@ def main():
         description="Capacity Planning Calculator",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
+
     parser.add_argument("--current-users", type=int, default=1000, help="Current number of users")
     parser.add_argument("--peak-users", type=int, default=1500, help="Peak number of users")
     parser.add_argument("--avg-rps-per-user", type=float, default=0.5, help="Average requests per user per second")
@@ -150,12 +150,12 @@ def main():
     parser.add_argument("--current-throughput", type=float, default=500.0, help="Current throughput (req/s)")
     parser.add_argument("--max-throughput", type=float, default=1000.0, help="Max throughput per instance (req/s)")
     parser.add_argument("--current-instances", type=int, default=3, help="Current number of instances")
-    
+
     parser.add_argument("--target-users", type=int, help="Calculate resources for target users")
     parser.add_argument("--report", action="store_true", help="Generate capacity report")
-    
+
     args = parser.parse_args()
-    
+
     metrics = CapacityMetrics(
         current_users=args.current_users,
         peak_users=args.peak_users,
@@ -165,12 +165,12 @@ def main():
         current_throughput_rps=args.current_throughput,
         max_throughput_rps=args.max_throughput,
     )
-    
+
     planner = CapacityPlanner(metrics, current_instances=args.current_instances)
-    
+
     if args.report:
         print(planner.generate_report())
-    
+
     if args.target_users:
         resources = planner.calculate_resources_needed(args.target_users)
         print("\nResource Requirements:")
@@ -180,14 +180,13 @@ def main():
                 print(f"  {key}: {value:.2f}")
             else:
                 print(f"  {key}: {value}")
-    
+
     if not args.report and not args.target_users:
         # Default: show report
         print(planner.generate_report())
-    
+
     return 0
 
 
 if __name__ == "__main__":
     exit(main())
-

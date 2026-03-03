@@ -12,4 +12,3 @@ tracing = "0.1"
 tracing-opentelemetry = "0.21"
 tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
 tokio = { version = "1", features = ["full"] }
-

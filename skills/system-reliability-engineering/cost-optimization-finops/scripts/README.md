@@ -78,7 +78,7 @@ python auto_optimizer.py report --output report.json
 ## 📋 Requisitos
 
 - **AWS Credentials:** Configuradas vía AWS CLI, variables de entorno, o IAM role
-- **Permisos IAM:** 
+- **Permisos IAM:**
   - `ce:GetCostAndUsage` (Cost Explorer)
   - `budgets:*` (Budgets)
   - `ec2:Describe*` (EC2)
@@ -92,4 +92,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Resource optimization
 - Cost allocation
 - FinOps best practices
-

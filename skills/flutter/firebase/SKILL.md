@@ -125,39 +125,39 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Firebase Core
   firebase_core: ^2.24.2
-  
+
   # Firebase Authentication
   firebase_auth: ^4.15.3
   google_sign_in: ^6.2.1
-  
+
   # Cloud Firestore
   cloud_firestore: ^4.13.6
-  
+
   # Cloud Storage
   firebase_storage: ^11.5.6
-  
+
   # Cloud Messaging
   firebase_messaging: ^14.7.9
   flutter_local_notifications: ^16.3.0
-  
+
   # Firebase Analytics
   firebase_analytics: ^10.7.4
-  
+
   # Crashlytics
   firebase_crashlytics: ^3.4.8
-  
+
   # Remote Config
   firebase_remote_config: ^4.3.8
-  
+
   # State Management
   provider: ^6.1.1
-  
+
   # Image Picker (para Storage)
   image_picker: ^1.0.7
-  
+
   # Utils
   equatable: ^2.0.5
   dartz: ^0.10.1
@@ -248,15 +248,15 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   // Pass all uncaught errors to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  
+
   runApp(const MyApp());
 }
 ```
@@ -476,7 +476,7 @@ class FirestoreProductsDataSourceImpl implements FirestoreProductsDataSource {
   @override
   Future<ProductModel> createProduct(ProductModel product) async {
     final docRef = _firestore.collection(_collection).doc();
-    
+
     final productWithId = product.copyWith(
       id: docRef.id,
       createdAt: DateTime.now(),
@@ -512,7 +512,7 @@ class FirestoreProductsDataSourceImpl implements FirestoreProductsDataSource {
 extension ProductModelFirestore on ProductModel {
   static ProductModel fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return ProductModel(
       id: doc.id,
       name: data['name'] as String,
@@ -1018,7 +1018,7 @@ class StorageService {
   }) async {
     try {
       final ref = _storage.ref(path).child(fileName ?? file.path.split('/').last);
-      
+
       final uploadTask = ref.putFile(
         file,
         SettableMetadata(
@@ -1037,7 +1037,7 @@ class StorageService {
 
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
-      
+
       return downloadUrl;
     } on FirebaseException catch (e) {
       throw Exception('Upload failed: ${e.message}');
@@ -1066,7 +1066,7 @@ class StorageService {
     try {
       final ref = _storage.refFromURL(url);
       final file = File(localPath);
-      
+
       await ref.writeToFile(file);
       return file;
     } on FirebaseException catch (e) {
@@ -1143,7 +1143,7 @@ import '../../data/repositories/auth_repository_impl.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthRepositoryImpl _authRepository;
-  
+
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -1256,11 +1256,11 @@ import 'features/authentication/data/repositories/auth_repository_impl.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   runApp(const MyApp());
 }
 
@@ -1336,7 +1336,7 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
+
     // Users collection
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -1379,13 +1379,13 @@ service firebase.storage {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Public images
     match /public/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
+
     // Private files
     match /private/{userId}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -1410,8 +1410,8 @@ await _remoteConfig.setDefaults({
 await _remoteConfig.setConfigSettings(
   RemoteConfigSettings(
     fetchTimeout: const Duration(seconds: 10),
-    minimumFetchInterval: kDebugMode 
-      ? const Duration(seconds: 0) 
+    minimumFetchInterval: kDebugMode
+      ? const Duration(seconds: 0)
       : const Duration(hours: 1),
   ),
 );
@@ -1497,7 +1497,7 @@ MultiProvider(
 
 ---
 
-**Versión:** 2.0.0  
+**Versión:** 2.0.0
 **Última actualización:** Diciembre 2025
 
 ## 📝 Changelog
@@ -1509,4 +1509,3 @@ MultiProvider(
 - ✅ Mejorada sección de Analytics con ejemplos de screen tracking, custom events, user ID y user properties
 - ✅ Agregadas mejores prácticas para Storage, Remote Config, Analytics y Provider
 - ✅ Actualizada estructura del proyecto para incluir nuevos servicios
-

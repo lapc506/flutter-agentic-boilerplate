@@ -35,7 +35,7 @@ Crea un changelog para la versión v1.2.0
 
 ## 📖 Descripción
 
-Skill para gestionar el versionamiento semántico (SemVer) del proyecto AltruPets. Este skill define la estructura y el proceso para documentar cambios en el backend y en la aplicación móvil, asegurando que cada release tenga un registro claro de adiciones, cambios y eliminaciones.
+Skill para gestionar el versionamiento semántico (SemVer) de proyectos Flutter. Este skill define la estructura y el proceso para documentar cambios en el backend y en la aplicación móvil, asegurando que cada release tenga un registro claro de adiciones, cambios y eliminaciones.
 
 ### ✅ Cuándo Usar Este Skill
 

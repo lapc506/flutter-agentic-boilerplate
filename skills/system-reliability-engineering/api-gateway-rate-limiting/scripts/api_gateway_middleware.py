@@ -49,12 +49,12 @@ RATE_LIMITERS = {
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
     Middleware for rate limiting requests.
-    
+
     Supports different rate limits based on:
     - API key tier (premium, basic)
     - IP address (for anonymous requests)
     """
-    
+
     def __init__(self, app, limiters: Dict):
         super().__init__(app)
         self.limiters = limiters
@@ -62,28 +62,28 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Get client identifier
         client_id = request.client.host if request.client else "unknown"
-        
+
         # Determine rate limiter based on authentication
         limiter = self.limiters.get("anonymous")
         tier = "anonymous"
-        
+
         # Check for API key in header
         auth_header = request.headers.get("authorization")
         if auth_header:
             # Extract API key (Bearer token or direct)
             api_key = auth_header.replace("Bearer ", "").replace("bearer ", "")
-            
+
             if api_key in VALID_API_KEYS:
                 user_info = VALID_API_KEYS[api_key]
                 tier = user_info.get("tier", "basic")
                 limiter = self.limiters.get(tier, self.limiters["basic"])
                 client_id = user_info.get("user_id", api_key)
-        
+
         # Check rate limit
         if not limiter.is_allowed(client_id):
             remaining = limiter.get_remaining(client_id)
             reset_time = int(time.time()) + limiter.window_seconds
-            
+
             return JSONResponse(
                 status_code=429,
                 content={
@@ -97,19 +97,19 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "Retry-After": str(limiter.window_seconds)
                 }
             )
-        
+
         # Process request
         response = await call_next(request)
-        
+
         # Add rate limit headers
         remaining = limiter.get_remaining(client_id)
         reset_time = int(time.time()) + limiter.window_seconds
-        
+
         response.headers["X-RateLimit-Limit"] = str(limiter.max_requests)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
         response.headers["X-RateLimit-Reset"] = str(reset_time)
         response.headers["X-RateLimit-Tier"] = tier
-        
+
         return response
 
 
@@ -120,25 +120,25 @@ app.add_middleware(RateLimitMiddleware, limiters=RATE_LIMITERS)
 def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict:
     """
     Verify API key and return user information.
-    
+
     Args:
         credentials: HTTP Bearer token credentials
-        
+
     Returns:
         User information dictionary
-        
+
     Raises:
         HTTPException: If API key is invalid
     """
     api_key = credentials.credentials
-    
+
     if api_key not in VALID_API_KEYS:
         raise HTTPException(
             status_code=401,
             detail="Invalid API key",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    
+
     return VALID_API_KEYS[api_key]
 
 
@@ -165,7 +165,7 @@ async def health():
 async def get_data(user_info: Dict = Depends(verify_api_key)):
     """
     Example API endpoint with authentication and rate limiting.
-    
+
     Requires valid API key in Authorization header:
     Authorization: Bearer valid-api-key-1
     """
@@ -197,7 +197,7 @@ async def create_data(
 async def public_endpoint(request: Request):
     """
     Public endpoint with rate limiting based on IP.
-    
+
     No authentication required, but rate limited by IP address.
     """
     return {
@@ -209,4 +209,3 @@ async def public_endpoint(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

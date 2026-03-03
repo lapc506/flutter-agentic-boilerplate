@@ -123,29 +123,29 @@ my_app/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Secure Storage
   flutter_secure_storage: ^9.0.0
-  
+
   # Encryption
   encrypt: ^5.0.3
   crypto: ^3.0.3
-  
+
   # Biometric Authentication
   local_auth: ^2.1.7
-  
+
   # Certificate Pinning
   dio: ^5.4.0
-  
+
   # Root/Jailbreak Detection
   flutter_jailbreak_detection: ^1.10.0
-  
+
   # Environment Variables
   flutter_dotenv: ^5.1.0
-  
+
   # Platform Security
   flutter_windowmanager: ^0.2.0  # Android screenshot prevention
-  
+
   # Utilities
   uuid: ^4.2.2
 
@@ -169,15 +169,15 @@ android {
             // Enable obfuscation
             minifyEnabled true
             shrinkResources true
-            
+
             // ProGuard configuration
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            
+
             // Additional security
             debuggable false
             jniDebuggable false
             renderscriptDebuggable false
-            
+
             // Signing config
             signingConfig signingConfigs.release
         }
@@ -291,7 +291,7 @@ build_android() {
         --split-debug-info=build/android/symbols/$VERSION \
         --release
     cd ..
-    
+
     echo "✅ Android build complete: build/app/outputs/bundle/release/"
 }
 
@@ -303,7 +303,7 @@ build_ios() {
         --split-debug-info=build/ios/symbols/$VERSION \
         --release
     cd ..
-    
+
     echo "✅ iOS build complete: build/ios/ipa/"
 }
 
@@ -598,7 +598,7 @@ import 'package:dio/io.dart';
 
 class CertificatePinning {
   static const String _certificatePath = 'assets/certificates/cert.pem';
-  
+
   // Lista de SHA-256 fingerprints permitidos
   static const List<String> _allowedFingerprints = [
     // Ejemplo: SHA-256 del certificado del servidor
@@ -618,20 +618,20 @@ class CertificatePinning {
     // Configure HTTP client with certificate pinning
     (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
       final client = HttpClient();
-      
+
       client.badCertificateCallback = (cert, host, port) {
         // Verify certificate fingerprint
         final certFingerprint = _getCertificateFingerprint(cert);
-        
+
         if (_allowedFingerprints.contains(certFingerprint)) {
           return true;
         }
-        
+
         print('Certificate pinning failed for $host:$port');
         print('Received fingerprint: $certFingerprint');
         return false;
       };
-      
+
       return client;
     };
 
@@ -643,7 +643,7 @@ class CertificatePinning {
     final der = cert.der;
     final hash = SHA256();
     final digest = hash.convert(der);
-    
+
     return digest.bytes
         .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
         .join(':');
@@ -652,7 +652,7 @@ class CertificatePinning {
   // Load certificate from assets
   static Future<SecurityContext> loadCertificateFromAssets() async {
     final context = SecurityContext.defaultContext;
-    
+
     try {
       final certData = await rootBundle.load(_certificatePath);
       final certBytes = certData.buffer.asUint8List();
@@ -660,7 +660,7 @@ class CertificatePinning {
     } catch (e) {
       print('Error loading certificate: $e');
     }
-    
+
     return context;
   }
 }
@@ -681,7 +681,7 @@ class SSLPinningInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final host = Uri.parse(options.baseUrl).host;
-    
+
     if (!allowedHosts.contains(host)) {
       return handler.reject(
         DioException(
@@ -691,7 +691,7 @@ class SSLPinningInterceptor extends Interceptor {
         ),
       );
     }
-    
+
     handler.next(options);
   }
 }
@@ -801,7 +801,7 @@ class BiometricService {
           : BiometricAuthResult.failure;
     } on PlatformException catch (e) {
       print('Biometric authentication error: ${e.code} - ${e.message}');
-      
+
       switch (e.code) {
         case auth_error.notAvailable:
           return BiometricAuthResult.notAvailable;
@@ -863,7 +863,7 @@ class BiometricService {
   // Get biometric type name for UI
   Future<String> getBiometricTypeName() async {
     final biometrics = await getAvailableBiometrics();
-    
+
     if (biometrics.contains(BiometricType.face)) {
       return 'Face ID';
     } else if (biometrics.contains(BiometricType.fingerprint)) {
@@ -931,7 +931,7 @@ class _BiometricLoginScreenState extends State<BiometricLoginScreen> {
   Future<void> _checkBiometricSupport() async {
     final isSupported = await _biometricService.isDeviceSupported();
     final canCheck = await _biometricService.canCheckBiometrics();
-    
+
     if (!isSupported || !canCheck) {
       setState(() {
         _message = 'Biometric authentication not available';
@@ -995,7 +995,7 @@ class RootDetectionService {
     try {
       final isJailbroken = await FlutterJailbreakDetection.jailbroken;
       final isDeveloperMode = await FlutterJailbreakDetection.developerMode;
-      
+
       return isJailbroken || isDeveloperMode;
     } catch (e) {
       print('Error checking root/jailbreak: $e');
@@ -1032,7 +1032,7 @@ class RootDetectionService {
     // 2. Deshabilitar funciones sensibles
     // 3. Bloquear completamente la app
     // 4. Reportar al backend para análisis
-    
+
     print('⚠️ Device appears to be compromised (rooted/jailbroken)');
   }
 }
@@ -1052,11 +1052,11 @@ class DeviceSecurityStatus {
     if (isSecure) {
       return 'Device is secure';
     }
-    
+
     final issues = <String>[];
     if (isJailbroken) issues.add('jailbroken/rooted');
     if (isDeveloperMode) issues.add('developer mode enabled');
-    
+
     return 'Security warning: ${issues.join(', ')}';
   }
 }
@@ -1078,14 +1078,14 @@ class Environment {
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
   static String get apiSecret => dotenv.env['API_SECRET'] ?? '';
   static String get googleMapsKey => dotenv.env['GOOGLE_MAPS_KEY'] ?? '';
-  
+
   // Base URLs
   static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? 'https://api.example.com';
-  
+
   // Feature flags
   static bool get enableAnalytics => dotenv.env['ENABLE_ANALYTICS'] == 'true';
   static bool get enableCrashlytics => dotenv.env['ENABLE_CRASHLYTICS'] == 'true';
-  
+
   // Environment type
   static String get environment => dotenv.env['ENVIRONMENT'] ?? 'development';
   static bool get isProduction => environment == 'production';
@@ -1095,10 +1095,10 @@ class Environment {
 // main.dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables
   await Environment.load();
-  
+
   runApp(MyApp());
 }
 ```
@@ -1149,7 +1149,7 @@ class SecureHttpClient {
 
   Future<void> _initializeDio() async {
     _dio = await CertificatePinning.createDioWithPinning();
-    
+
     // Add interceptors
     _dio.interceptors.addAll([
       _AuthInterceptor(_secureStorage),
@@ -1198,11 +1198,11 @@ class _AuthInterceptor extends Interceptor {
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    
+
     // Add security headers
     options.headers['X-App-Version'] = '1.0.0';
     options.headers['X-Platform'] = Platform.operatingSystem;
-    
+
     handler.next(options);
   }
 }
@@ -1259,7 +1259,7 @@ class _ErrorInterceptor extends Interceptor {
       default:
         break;
     }
-    
+
     handler.next(err);
   }
 }
@@ -1441,7 +1441,6 @@ Future<bool> isPhysicalDevice() async {
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,150+
-

@@ -6,7 +6,7 @@ Structured logging with JSON output for centralized logging systems.
 
 Usage:
     from structured_logger import get_logger
-    
+
     logger = get_logger(service='my-service')
     logger.info('User created', extra={
         'user_id': '12345',
@@ -27,7 +27,7 @@ from typing import Dict, Any, Optional
 
 class StructuredFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
         log_data = {
@@ -38,7 +38,7 @@ class StructuredFormatter(logging.Formatter):
             'function': record.funcName,
             'line': record.lineno,
         }
-        
+
         # Add extra fields from record
         for key, value in record.__dict__.items():
             if key not in [
@@ -48,15 +48,15 @@ class StructuredFormatter(logging.Formatter):
                 'thread', 'threadName', 'exc_info', 'exc_text', 'stack_info'
             ]:
                 log_data[key] = value
-        
+
         # Add exception info if present
         if record.exc_info:
             log_data['exception'] = self.formatException(record.exc_info)
-        
+
         # Add stack trace if present
         if record.stack_info:
             log_data['stack'] = self.formatStack(record.stack_info)
-        
+
         return json.dumps(log_data)
 
 
@@ -69,49 +69,49 @@ def get_logger(
 ) -> logging.Logger:
     """
     Get a structured logger instance.
-    
+
     Args:
         name: Logger name (default: __name__)
         service: Service name (default: from env or 'application')
         environment: Environment (default: from env or 'development')
         version: Application version (default: from env or '1.0.0')
         level: Log level (default: 'INFO')
-        
+
     Returns:
         Configured logger instance
     """
     import os
-    
+
     logger = logging.getLogger(name or __name__)
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
-    
+
     # Clear existing handlers
     logger.handlers.clear()
-    
+
     # Create formatter
     formatter = StructuredFormatter()
-    
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
+
     # File handler for errors
     error_handler = logging.FileHandler('logs/error.log')
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(formatter)
     logger.addHandler(error_handler)
-    
+
     # File handler for all logs
     file_handler = logging.FileHandler('logs/combined.log')
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-    
+
     # Add default metadata
     service_name = service or os.getenv('SERVICE_NAME', 'application')
     env = environment or os.getenv('ENVIRONMENT', 'development')
     app_version = version or os.getenv('APP_VERSION', '1.0.0')
-    
+
     # Add adapter to inject default metadata
     class ContextAdapter(logging.LoggerAdapter):
         def process(self, msg, kwargs):
@@ -120,7 +120,7 @@ def get_logger(
             kwargs['extra'].setdefault('environment', env)
             kwargs['extra'].setdefault('version', app_version)
             return msg, kwargs
-    
+
     return ContextAdapter(logger, {})
 
 
@@ -186,16 +186,16 @@ logger = get_logger()
 # CLI usage
 if __name__ == '__main__':
     import os
-    
+
     # Create logs directory
     os.makedirs('logs', exist_ok=True)
-    
+
     # Example usage
     logger.info('Application started', extra={
         'port': os.getenv('PORT', '3000'),
         'python_version': sys.version,
     })
-    
+
     logger.info('User created', extra={
         'user_id': '12345',
         'email': 'user@example.com',
@@ -206,11 +206,10 @@ if __name__ == '__main__':
         'http_status': 201,
         'duration_ms': 45,
     })
-    
+
     logger.error('Database connection failed', extra={
         'error': 'Connection timeout',
         'database': 'users-db',
         'retry_attempt': 3,
         'trace_id': 'abc-123',
     })
-

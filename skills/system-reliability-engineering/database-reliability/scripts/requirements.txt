@@ -8,4 +8,3 @@
 # - pg_verifybackup (for verification, optional)
 # - tar (for extraction)
 # - systemctl (for service management, optional)
-

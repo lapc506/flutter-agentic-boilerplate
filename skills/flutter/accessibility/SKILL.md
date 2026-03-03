@@ -311,12 +311,12 @@ class AccessibilityUtils {
   // Check contrast ratio (WCAG guidelines)
   static bool meetsContrastRatio(Color foreground, Color background, {bool isLargeText = false}) {
     final contrastRatio = calculateContrastRatio(foreground, background);
-    
+
     // WCAG AA standards:
     // - Normal text: 4.5:1
     // - Large text: 3:1
     final requiredRatio = isLargeText ? 3.0 : 4.5;
-    
+
     return contrastRatio >= requiredRatio;
   }
 
@@ -324,10 +324,10 @@ class AccessibilityUtils {
   static double calculateContrastRatio(Color color1, Color color2) {
     final l1 = _relativeLuminance(color1);
     final l2 = _relativeLuminance(color2);
-    
+
     final lighter = l1 > l2 ? l1 : l2;
     final darker = l1 > l2 ? l2 : l1;
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
 
@@ -336,7 +336,7 @@ class AccessibilityUtils {
     final r = _linearize(color.red / 255);
     final g = _linearize(color.green / 255);
     final b = _linearize(color.blue / 255);
-    
+
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
 
@@ -515,7 +515,7 @@ class _AccessibleFormState extends State<AccessibleForm> {
     if (_formKey.currentState!.validate()) {
       // Announce success to screen reader
       AccessibilityUtils.announce(context, 'Form submitted successfully');
-      
+
       // Process form
     } else {
       // Announce errors
@@ -773,7 +773,6 @@ Semantics(
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0
+**Última actualización:** Diciembre 2025
 **Total líneas:** 1,100+
-

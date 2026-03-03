@@ -11,4 +11,3 @@ uvicorn[standard]>=0.24.0
 # redis>=5.0.0  # For distributed rate limiting
 # python-jose[cryptography]>=3.3.0  # For JWT authentication
 # passlib[bcrypt]>=1.7.4  # For password hashing
-

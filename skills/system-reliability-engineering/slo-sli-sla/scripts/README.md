@@ -50,4 +50,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa y ejemplos de uso.
 ## 🔗 Ejemplos
 
 Ver [`../examples/usage_example.py`](../examples/usage_example.py) para ejemplos programáticos.
-

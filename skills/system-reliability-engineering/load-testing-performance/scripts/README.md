@@ -145,4 +145,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Performance profiling techniques
 - Capacity planning methodologies
 - Best practices
-

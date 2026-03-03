@@ -11,8 +11,8 @@ Si deseas agregar un nuevo skill arquitectónico o patrón a `AGENTS.md`, sigue 
 ```markdown
 ### Skill [N]: [Nombre del Skill]
 
-**ID:** `flutter-[identificador]`  
-**Nivel:** [Básico/Intermedio/Avanzado]  
+**ID:** `flutter-[identificador]`
+**Nivel:** [Básico/Intermedio/Avanzado]
 **Referencia:** [URL opcional]
 
 #### Descripción
@@ -172,4 +172,3 @@ Si tienes preguntas sobre cómo contribuir, abre un issue con la etiqueta "quest
 ---
 
 ¡Gracias por hacer de Flutter Agent Skills un mejor recurso para la comunidad! 🚀
-

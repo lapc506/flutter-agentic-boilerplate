@@ -1,9 +1,9 @@
 /**
  * k6 Load Test for Rust API
- * 
+ *
  * Optimized load test for Rust backend APIs.
  * Expects lower latency due to Rust performance.
- * 
+ *
  * Usage:
  *   k6 run rust-api-load.js
  *   k6 run rust-api-load.js --env BASE_URL=http://localhost:8080
@@ -32,7 +32,7 @@ export const options = {
 
 export default function () {
   const baseUrl = __ENV.BASE_URL || 'http://localhost:8080';
-  
+
   // Test health endpoint
   const healthCheck = http.get(`${baseUrl}/health`, {
     tags: { name: 'HealthCheck' },
@@ -49,9 +49,9 @@ export default function () {
     },
     tags: { name: 'GetUsers' },
   });
-  
+
   const duration = Date.now() - startTime;
-  
+
   const success = check(response, {
     'status is 200': (r) => r.status === 200,
     'response time < 50ms': (r) => r.timings.duration < 50,
@@ -70,4 +70,3 @@ export default function () {
 
   sleep(1);
 }
-

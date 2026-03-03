@@ -87,4 +87,3 @@ Ver [`../SKILL.md`](../SKILL.md) para documentación completa sobre:
 - Compliance automation
 - Security policies as code
 - Automated remediation best practices
-

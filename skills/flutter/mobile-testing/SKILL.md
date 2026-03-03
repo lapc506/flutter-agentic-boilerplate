@@ -6,7 +6,7 @@
 |----------|-------|
 | **ID** | `flutter-mobile-testing` |
 | **Nivel** | 🔴 Avanzado |
-| **Versión** | 1.1.0 |
+| **Versión** | 1.2.0 |
 | **Keywords** | `mobile-testing`, `integration-test`, `flutter-mcp`, `dart-mcp`, `debugging`, `logic-analysis`, `widget-inspection`, `device-testing` |
 | **Referencia** | [Dart and Flutter MCP server](https://docs.flutter.dev/ai/mcp-server) \| [Mobile MCP](https://github.com/mobile-next/mobile-mcp) |
 
@@ -87,7 +87,7 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Testing
   integration_test:
     sdk: flutter
@@ -347,7 +347,7 @@ void main() {
 
     testWidgets('Login completo con email y password', (WidgetTester testTester) async {
       tester = testTester;
-      
+
       // 1. Iniciar la app
       await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
@@ -379,7 +379,7 @@ void main() {
 
     testWidgets('Login con Google Sign-In', (WidgetTester testTester) async {
       tester = testTester;
-      
+
       await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
 
@@ -397,7 +397,7 @@ void main() {
 
     testWidgets('Recuperación de contraseña', (WidgetTester testTester) async {
       tester = testTester;
-      
+
       await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
 
@@ -661,7 +661,7 @@ await Future.delayed(Duration(seconds: 5));
 
 ```dart
 // ✅ Bueno: Assertions específicas con mensajes
-expect(find.text('Welcome'), findsOneWidget, 
+expect(find.text('Welcome'), findsOneWidget,
   reason: 'User should see welcome message after login');
 
 // ❌ Malo: Assertions genéricas
@@ -872,6 +872,37 @@ Compara los resultados y genera un reporte
 
 ---
 
-**Versión:** 1.0.0  
-**Última actualización:** Diciembre 2025
+**Versión:** 1.0.0
+**Última actualización:** Febrero 2026
 
+---
+
+## 📝 Logging de HTTP Requests
+
+El proyecto incluye un `LoggingInterceptor` que guarda logs de todas las peticiones HTTP a archivo.
+
+### Configuración
+
+**En `Environment`:**
+
+```dart
+// lib/core/config/environment_manager.dart
+
+static const development = Environment(
+  name: 'development',
+  apiBaseUrl: 'http://localhost:3000',
+  requestTimeoutSeconds: 30,
+  enableLogging: true,
+  logsPath: './logs/mobile',
+);
+```
+
+### Ubicación de Logs
+
+Por defecto se guardan en: `logs/mobile/http_logs_<timestamp>.log`
+
+### Ver Logs en Tiempo Real
+
+```bash
+tail -f logs/mobile/http_logs_$(ls -t logs/mobile/ | head -1)
+```

@@ -80,14 +80,14 @@ lib/
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Image optimization
   cached_network_image: ^3.3.0
   flutter_cache_manager: ^3.3.1
-  
+
   # Performance monitoring
   performance: ^0.2.0
-  
+
   # Utils
   equatable: ^2.0.5
 
@@ -193,7 +193,7 @@ class _AnimatedWidgetState extends State<AnimatedWidget>
       children: [
         // Widget estático, no necesita repaint
         const Text('Static Header'),
-        
+
         // Widget animado, aislado con RepaintBoundary
         RepaintBoundary(
           child: AnimatedBuilder(
@@ -207,7 +207,7 @@ class _AnimatedWidgetState extends State<AnimatedWidget>
             child: const Icon(Icons.refresh, size: 100),
           ),
         ),
-        
+
         // Otro widget estático
         const Text('Static Footer'),
       ],
@@ -250,7 +250,7 @@ class OptimizedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      
+
       // Progressive loading
       progressIndicatorBuilder: (context, url, downloadProgress) {
         return Center(
@@ -259,16 +259,16 @@ class OptimizedImage extends StatelessWidget {
           ),
         );
       },
-      
+
       // Error handling
       errorWidget: (context, url, error) {
         return const Icon(Icons.error);
       },
-      
+
       // Memory cache
       memCacheWidth: width?.toInt(),
       memCacheHeight: height?.toInt(),
-      
+
       // Fade in animation
       fadeInDuration: const Duration(milliseconds: 300),
     );
@@ -303,7 +303,7 @@ class _ProductsTabState extends State<ProductsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);  // IMPORTANTE: Llamar super.build
-    
+
     return ListView.builder(
       itemCount: 100,
       itemBuilder: (context, index) {
@@ -336,7 +336,7 @@ class OptimizedScrollView extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Lista optimizada con builder
         SliverList(
           delegate: SliverChildBuilderDelegate(
@@ -346,7 +346,7 @@ class OptimizedScrollView extends StatelessWidget {
             childCount: 1000,
           ),
         ),
-        
+
         // Grid optimizado
         SliverGrid(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -418,7 +418,7 @@ class ProductPriceText extends StatelessWidget {
   Widget build(BuildContext context) {
     // Solo se reconstruye cuando el precio cambia
     final price = context.select((ProductBloc bloc) => bloc.state.price);
-    
+
     return Text('\$$price');
   }
 }
@@ -431,7 +431,7 @@ class ProductPriceText extends StatelessWidget {
   Widget build(BuildContext context) {
     // Solo se reconstruye cuando el precio cambia
     final price = context.select<ProductModel, double>((product) => product.price);
-    
+
     return Text('\$$price');
   }
 }
@@ -494,11 +494,11 @@ import 'package:flutter/scheduler.dart';
 class PerformanceMonitor {
   static void trackBuildTime(String widgetName, VoidCallback buildFunction) {
     final stopwatch = Stopwatch()..start();
-    
+
     buildFunction();
-    
+
     stopwatch.stop();
-    
+
     if (stopwatch.elapsedMilliseconds > 16) {  // 60 FPS = 16ms per frame
       print('⚠️ Slow build: $widgetName took ${stopwatch.elapsedMilliseconds}ms');
     }
@@ -509,7 +509,7 @@ class PerformanceMonitor {
       for (final timing in timings) {
         final buildTime = timing.buildDuration.inMilliseconds;
         final rasterTime = timing.rasterDuration.inMilliseconds;
-        
+
         if (buildTime > 16 || rasterTime > 16) {
           print('⚠️ Frame drop: Build=${buildTime}ms, Raster=${rasterTime}ms');
         }
@@ -576,7 +576,7 @@ cd ..
 # Performance overlay en código
 void main() {
   runApp(MyApp());
-  
+
   if (kProfileMode) {
     WidgetsApp.debugShowWidgetInspector = true;
   }
@@ -702,6 +702,5 @@ class _MyWidgetState extends State<MyWidget> {
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0
 **Última actualización:** Diciembre 2025
-

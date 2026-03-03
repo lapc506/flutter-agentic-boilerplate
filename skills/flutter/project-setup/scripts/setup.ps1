@@ -39,7 +39,7 @@ function Write-Error {
 # Verificar que Flutter esté instalado
 function Test-Flutter {
     Write-Info "Verificando instalación de Flutter..."
-    
+
     # Verificar si el comando flutter existe
     $flutterCommand = Get-Command flutter -ErrorAction SilentlyContinue
     if (-not $flutterCommand) {
@@ -48,25 +48,25 @@ function Test-Flutter {
         Write-Info "Asegúrate de agregar Flutter al PATH del sistema"
         exit 1
     }
-    
+
     try {
         # Ejecutar flutter --version y capturar la salida
         $flutterOutput = flutter --version 2>&1
         $flutterExitCode = $LASTEXITCODE
-        
+
         # Si hay error o el código de salida no es 0, verificar más
         if ($flutterExitCode -ne 0 -and $flutterExitCode -ne $null) {
             throw "Flutter no está disponible correctamente"
         }
-        
+
         # Extraer la primera línea con la versión
         $flutterVersion = ($flutterOutput | Select-Object -First 1).ToString()
         if ([string]::IsNullOrWhiteSpace($flutterVersion)) {
             $flutterVersion = "Flutter instalado"
         }
-        
+
         Write-Success "Flutter encontrado: $flutterVersion"
-        
+
         # Verificar que Flutter esté configurado correctamente (sin mostrar toda la salida)
         Write-Info "Verificando configuración de Flutter..."
         $doctorOutput = flutter doctor 2>&1 | Out-Null
@@ -101,20 +101,20 @@ function Get-PackageName {
     } else {
         $script:PackageName = $input
     }
-    
+
     # Validar formato básico del nombre del paquete
     if ($script:PackageName -notmatch '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$') {
         Write-Warning "El nombre del paquete debe seguir el formato: com.ejemplo.miapp (solo letras minúsculas, números y puntos)"
         Write-Info "Usando nombre por defecto: $script:PackageName"
     }
-    
+
     Write-Info "Nombre del paquete: $script:PackageName"
 }
 
 # Crear estructura de directorios
 function New-ProjectStructure {
     Write-Info "Creando estructura de monorepo..."
-    
+
     # Crear directorio backend si no existe
     if (-not (Test-Path "backend")) {
         New-Item -ItemType Directory -Path "backend" -Force | Out-Null
@@ -122,7 +122,7 @@ function New-ProjectStructure {
     } else {
         Write-Warning "El directorio 'backend' ya existe"
     }
-    
+
     # Crear directorio mobile si no existe
     if (-not (Test-Path "mobile")) {
         New-Item -ItemType Directory -Path "mobile" -Force | Out-Null
@@ -140,9 +140,9 @@ function New-ProjectStructure {
 # Crear proyecto Flutter
 function New-FlutterProject {
     Write-Info "Creando proyecto Flutter en 'mobile/'..."
-    
+
     Push-Location mobile
-    
+
     try {
         # Verificar si ya existe un proyecto Flutter
         if (Test-Path "pubspec.yaml") {
@@ -157,15 +157,15 @@ function New-FlutterProject {
             Write-Info "Limpiando directorio mobile..."
             Get-ChildItem -Path . -Exclude ".git" | Remove-Item -Recurse -Force
         }
-        
+
         # Crear proyecto Flutter
         Write-Info "Ejecutando 'flutter create .'..."
         flutter create . --project-name $script:ProjectName --org com.example
-        
+
         if ($LASTEXITCODE -ne 0) {
             throw "Error al crear el proyecto Flutter"
         }
-        
+
         Write-Success "Proyecto Flutter creado exitosamente"
     }
     finally {
@@ -176,18 +176,18 @@ function New-FlutterProject {
 # Instalar dependencias
 function Install-Dependencies {
     Write-Info "Instalando dependencias de Flutter..."
-    
+
     Push-Location mobile
-    
+
     try {
         # Agregar change_app_package_name como dev_dependency
         Write-Info "Agregando change_app_package_name como dependencia de desarrollo..."
         flutter pub add -d change_app_package_name
-        
+
         if ($LASTEXITCODE -ne 0) {
             throw "Error al agregar change_app_package_name"
         }
-        
+
         flutter pub get
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Dependencias instaladas correctamente"
@@ -203,14 +203,14 @@ function Install-Dependencies {
 # Cambiar el nombre del paquete usando change_app_package_name
 function Change-PackageName {
     Write-Info "Cambiando el nombre del paquete a: $script:PackageName..."
-    
+
     Push-Location mobile
-    
+
     try {
         # Ejecutar el comando para cambiar el nombre del paquete
         Write-Info "Ejecutando change_app_package_name..."
         dart run change_app_package_name:main $script:PackageName
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Nombre del paquete cambiado exitosamente a: $script:PackageName"
         } else {
@@ -229,9 +229,9 @@ function Change-PackageName {
 # Crear archivos de configuración adicionales
 function New-ConfigFiles {
     Write-Info "Creando archivos de configuración..."
-    
+
     Push-Location mobile
-    
+
     try {
         # Crear directorio de assets si no existe
         if (-not (Test-Path "assets/icon")) {
@@ -240,7 +240,7 @@ function New-ConfigFiles {
         if (-not (Test-Path "assets/splash")) {
             New-Item -ItemType Directory -Path "assets/splash" -Force | Out-Null
         }
-        
+
         # Crear .env-sample si no existe
         if (-not (Test-Path ".env-sample")) {
             $envSampleContent = @"
@@ -263,7 +263,7 @@ API_TIMEOUT=30000
             Set-Content -Path ".env-sample" -Value $envSampleContent
             Write-Success "Archivo .env-sample creado"
         }
-        
+
         # Crear .gitignore si no existe o actualizar
         if (-not (Test-Path ".gitignore")) {
             $gitignoreContent = @"
@@ -311,9 +311,9 @@ Thumbs.db
 # Crear README para mobile
 function New-MobileReadme {
     Write-Info "Creando README para mobile..."
-    
+
     Push-Location mobile
-    
+
     try {
         if (-not (Test-Path "README.md")) {
             $readmeContent = @"
@@ -385,7 +385,7 @@ function Main {
     Write-Host "  Flutter Boilerplate Setup Script"
     Write-Host "=========================================="
     Write-Host ""
-    
+
     Test-Flutter
     Get-ProjectName
     Get-PackageName
@@ -400,4 +400,3 @@ function Main {
 
 # Ejecutar script principal
 Main
-
