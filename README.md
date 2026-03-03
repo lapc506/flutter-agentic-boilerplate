@@ -12,15 +12,23 @@ Esta es una plantilla de boilerplate simple para crear una aplicación Flutter.
 
 Puedes usar este boilerplate como base y aprovechar los skills agénticos para guiar la implementación de features específicas, arquitecturas complejas o integraciones con servicios externos. Los skills se cargan progresivamente solo cuando se necesitan, manteniendo la eficiencia y reduciendo la carga cognitiva.
 
-## ¿Qué NO es esto?
+## Decisiones Arquitectonicas
 
-Dado que cada desarrollador puede tener opiniones muy fuertes sobre State Management y Arquitectura de Apps, esta plantilla no toma ninguna postura sobre estos temas por defecto.
+Esta plantilla es **opinionated** en arquitectura y state management:
 
-Por lo tanto, esto NO es tu plantilla de state management y arquitectura de app pre-configurada. Sin embargo, **los skills agénticos sí incluyen guías detalladas** para implementar diferentes patrones arquitectónicos (MVVM, Clean Architecture, Feature-First, Modular) y sistemas de gestión de estado (BLoC, Riverpod, Provider), permitiéndote elegir e implementar el enfoque que prefieras con la ayuda de los agentes de IA.
+- **Clean Architecture** — Separacion en capas (Domain / Data / Presentation) con dependencias unidireccionales. Cada feature es un modulo independiente con sus propias capas.
+- **Atomic Design** — Sistema de componentes UI organizado en niveles de complejidad creciente: atoms, molecules, organisms, templates y pages.
 
-O haz fork del repo, personaliza la plantilla a tu gusto y hazla tuya.
+### State Management Recomendado
 
-Dicho esto, los skills agénticos están diseñados para evolucionar y pueden combinarse según tus necesidades específicas.
+Se recomiendan dos frameworks de state management, segun la escala del proyecto:
+
+| Framework | Caso de uso | Paquete |
+|-----------|-------------|---------|
+| **Riverpod** | Proyectos de cualquier escala. Providers reactivos, compile-safe, con code generation opcional. | [`riverpod`](https://pub.dev/packages/riverpod) |
+| **Air Framework** | Proyectos enterprise/large-scale. Framework modular completo con state management reactivo, dependency injection, routing y DevTools integrados. | [`air_framework`](https://pub.dev/packages/air_framework) |
+
+Los skills agenticos incluyen guias detalladas para ambos frameworks, ademas de otros patrones arquitectonicos disponibles en `skills/flutter/`.
 
 ## Comenzando
 
@@ -155,20 +163,18 @@ proyecto/
 │   ├── src/
 │   ├── tests/
 │   └── package.json
-├── mobile/               # Aplicación Flutter
-│   ├── android/
-│   ├── ios/
+├── mobile/               # Aplicacion Flutter (Clean Architecture + Atomic Design)
 │   ├── lib/
-│   │   ├── core/
-│   │   ├── features/
-│   │   ├── shared/
+│   │   ├── core/             # Constantes, errores, red, tema, utils
+│   │   ├── features/         # Modulos por feature
+│   │   │   └── [feature]/
+│   │   │       ├── data/
+│   │   │       ├── domain/
+│   │   │       └── presentation/
+│   │   ├── shared/ui/        # Atomic Design (atoms, molecules, organisms, templates)
 │   │   └── main.dart
 │   ├── test/
-│   ├── assets/
-│   │   ├── icon/
-│   │   └── splash/
-│   ├── pubspec.yaml
-│   └── .env-sample
+│   └── assets/
 ├── skills/               # Agent Skills para asistentes de IA
 │   ├── flutter/          # Skills de Flutter (28 skills)
 │   │   ├── accessibility/

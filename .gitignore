@@ -9,7 +9,9 @@
 .history
 .svn/
 migrate_working_dir/
-logs/
+logs/**
+!logs/**/
+!logs/**/.gitkeep
 
 # Secrets
 .env
@@ -53,6 +55,13 @@ codex/
 .env
 .env.local
 
+# Backend build artifacts
+apps/backend/dist/
+apps/backend/node_modules/
+
+# Widgetbook build artifacts
+apps/widgetbook/build/
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -64,78 +73,78 @@ codex/
 .pub/
 /build/
 
-# Binarios y archivos generados en mobile/
-mobile/.dart_tool/
-mobile/.flutter-plugins
-mobile/.flutter-plugins-dependencies
-mobile/.packages
-mobile/.pub/
-mobile/build/
-mobile/**/*.iml
-mobile/**/*.ipr
-mobile/**/*.iws
-mobile/.idea/
-mobile/.vscode/
-mobile/*.lock
-mobile/pubspec.lock
+# Binarios y archivos generados en apps/mobile/
+apps/mobile/.dart_tool/
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+apps/mobile/.packages
+apps/mobile/.pub/
+apps/mobile/build/
+apps/mobile/**/*.iml
+apps/mobile/**/*.ipr
+apps/mobile/**/*.iws
+apps/mobile/.idea/
+apps/mobile/.vscode/
+apps/mobile/*.lock
+apps/mobile/pubspec.lock
 
 # Android build artifacts
-mobile/android/.gradle/
-mobile/android/local.properties
-mobile/android/**/build/
-mobile/android/app/debug/
-mobile/android/app/profile/
-mobile/android/app/release/
-mobile/android/.idea/
-mobile/android/*.iml
+apps/mobile/android/.gradle/
+apps/mobile/android/local.properties
+apps/mobile/android/**/build/
+apps/mobile/android/app/debug/
+apps/mobile/android/app/profile/
+apps/mobile/android/app/release/
+apps/mobile/android/.idea/
+apps/mobile/android/*.iml
 
 # iOS build artifacts
-mobile/ios/**/*.mode1v3
-mobile/ios/**/*.mode2v3
-mobile/ios/**/*.moved-aside
-mobile/ios/**/*.pbxuser
-mobile/ios/**/*.perspectivev3
-mobile/ios/**/*sync/
-mobile/ios/**/.sconsign.dblite
-mobile/ios/**/.tags*
-mobile/ios/**/.vagrant/
-mobile/ios/**/DerivedData/
-mobile/ios/**/Icon?
-mobile/ios/**/Pods/
-mobile/ios/**/.symlinks/
-mobile/ios/**/profile
-mobile/ios/**/xcuserdata/
-mobile/ios/.generated/
-mobile/ios/Flutter/.last_build_id
-mobile/ios/Flutter/App.framework
-mobile/ios/Flutter/Flutter.framework
-mobile/ios/Flutter/Flutter.podspec
-mobile/ios/Flutter/Generated.xcconfig
-mobile/ios/Flutter/ephemeral/
-mobile/ios/Flutter/app.flx
-mobile/ios/Flutter/app.zip
-mobile/ios/Flutter/flutter_assets/
-mobile/ios/Flutter/flutter_export_environment.sh
-mobile/ios/ServiceDefinitions.json
-mobile/ios/Runner/GeneratedPluginRegistrant.*
+apps/mobile/ios/**/*.mode1v3
+apps/mobile/ios/**/*.mode2v3
+apps/mobile/ios/**/*.moved-aside
+apps/mobile/ios/**/*.pbxuser
+apps/mobile/ios/**/*.perspectivev3
+apps/mobile/ios/**/*sync/
+apps/mobile/ios/**/.sconsign.dblite
+apps/mobile/ios/**/.tags*
+apps/mobile/ios/**/.vagrant/
+apps/mobile/ios/**/DerivedData/
+apps/mobile/ios/**/Icon?
+apps/mobile/ios/**/Pods/
+apps/mobile/ios/**/.symlinks/
+apps/mobile/ios/**/profile
+apps/mobile/ios/**/xcuserdata/
+apps/mobile/ios/.generated/
+apps/mobile/ios/Flutter/.last_build_id
+apps/mobile/ios/Flutter/App.framework
+apps/mobile/ios/Flutter/Flutter.framework
+apps/mobile/ios/Flutter/Flutter.podspec
+apps/mobile/ios/Flutter/Generated.xcconfig
+apps/mobile/ios/Flutter/ephemeral/
+apps/mobile/ios/Flutter/app.flx
+apps/mobile/ios/Flutter/app.zip
+apps/mobile/ios/Flutter/flutter_assets/
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+apps/mobile/ios/ServiceDefinitions.json
+apps/mobile/ios/Runner/GeneratedPluginRegistrant.*
 
 # macOS build artifacts
-mobile/macos/Flutter/ephemeral/
-mobile/macos/Flutter/GeneratedPluginRegistrant.swift
-mobile/macos/Flutter/Flutter-Debug.xcconfig
-mobile/macos/Flutter/Flutter-Release.xcconfig
+apps/mobile/macos/Flutter/ephemeral/
+apps/mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+apps/mobile/macos/Flutter/Flutter-Debug.xcconfig
+apps/mobile/macos/Flutter/Flutter-Release.xcconfig
 
 # Windows build artifacts
-mobile/windows/flutter/generated_plugin_registrant.*
+apps/mobile/windows/flutter/generated_plugin_registrant.*
 
 # Linux build artifacts
-mobile/linux/flutter/generated_plugin_registrant.*
+apps/mobile/linux/flutter/generated_plugin_registrant.*
 
 # Web build artifacts
-mobile/web/**/*.dart.js
-mobile/web/**/*.js_
-mobile/web/**/*.js.deps
-mobile/web/**/*.js.map
+apps/mobile/web/**/*.dart.js
+apps/mobile/web/**/*.js_
+apps/mobile/web/**/*.js.deps
+apps/mobile/web/**/*.js.map
 
 # Symbolication related
 app.*.symbols
@@ -161,3 +170,6 @@ examples/**/.packages
 .kiro/steering/byterover-rules.md
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
+
+# Preserve .gitkeep files in ignored directories
+!.gitkeep

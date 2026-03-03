@@ -1,236 +1,130 @@
-# 🏗️ Estructura del Proyecto Flutter Agent Skills
+# Estructura del Proyecto
 
-## 📂 Árbol de Archivos
+> Esta plantilla es **opinionated**: usa **Clean Architecture** + **Atomic Design** como estructura base para la app movil, y recomienda **Riverpod** o **Air Framework** para state management.
+
+## Arbol de Directorios
 
 ```
-flutter-agent-skills/
+proyecto/
+├── AGENTS.md                          # Documentacion de Agent Skills + taxonomia Linear
+├── README.md                          # Guia de inicio
+├── mcp.json                           # Configuracion MCP servers
+├── .gitignore
 │
-├── 📄 AGENTS.md                    # ⭐ Documentación principal de skills
-├── 📄 README.md                    # Guía de inicio y uso
-├── 📄 CONTRIBUTING.md              # Guía para contribuidores
-├── 📄 CHANGELOG.md                 # Historial de cambios
-├── 📄 STRUCTURE.md                 # Este archivo
-├── 📄 LICENSE                      # Licencia MIT
-├── 📄 .gitignore                   # Archivos ignorados por Git
+├── apps/
+│   ├── backend/                       # API backend (NestJS / Express / etc.)
+│   │   ├── src/
+│   │   ├── test/
+│   │   ├── scripts/
+│   │   └── public/
+│   ├── mobile/                        # App movil (Flutter)
+│   │   ├── lib/
+│   │   │   ├── core/                  # Constantes, errores, red, tema, utils
+│   │   │   ├── features/             # Modulos por feature (Clean Architecture)
+│   │   │   │   └── [feature]/
+│   │   │   │       ├── data/         # Datasources, models, repository impl
+│   │   │   │       ├── domain/       # Entities, use cases, repository interfaces
+│   │   │   │       └── presentation/ # Pages, providers/controllers, widgets
+│   │   │   ├── shared/
+│   │   │   │   └── ui/               # Atomic Design
+│   │   │   │       ├── atoms/        # Componentes basicos (botones, inputs, iconos)
+│   │   │   │       ├── molecules/    # Combinaciones simples (labeled input, icon button)
+│   │   │   │       ├── organisms/    # Componentes complejos (forms, cards, app bars)
+│   │   │   │       └── templates/    # Layouts de pagina sin datos
+│   │   │   └── main.dart
+│   │   ├── test/
+│   │   └── assets/
+│   └── widgetbook/                    # Catalogo de widgets (Widgetbook)
+│       ├── lib/
+│       └── test/
 │
-├── 📁 .cursor/
-│   └── 📄 mcp.json                 # ⚙️ Configuración Flutter MCP Server
+├── infrastructure/
+│   ├── terraform/
+│   │   ├── environments/              # dev / qa / staging / prod
+│   │   └── modules/                   # Modulos reutilizables
+│   ├── helm-charts/
+│   ├── k8s/                           # Manifiestos K8s de infra (gateway, cert-manager)
+│   ├── docker/
+│   ├── kms/                           # Gestion de secretos (Infisical, Vault, SOPS, etc.)
+│   └── scripts/
 │
-└── 📁 examples/ (opcional)
-    ├── 📁 mvvm_example/
-    │   └── [Proyecto Flutter MVVM]
-    └── 📁 clean_arch_example/
-        └── [Proyecto Flutter Clean Architecture]
+├── k8s/                               # Manifiestos K8s de aplicacion
+│   ├── base/backend/
+│   ├── overlays/                      # dev / qa / staging / prod
+│   └── argocd/                        # GitOps (projects + applications)
+│
+├── skills/                            # Agent Skills (54 skills)
+│   ├── flutter/                       # 28 skills Flutter
+│   ├── cicd/                          # 9 skills CI/CD
+│   ├── backend/                       # Backend skills
+│   ├── system-reliability-engineering/ # 14 skills SRE
+│   ├── figma/
+│   ├── static-analysis/
+│   └── ...
+│
+├── docs/
+│   ├── content/                       # Documentacion principal (MkDocs, Docusaurus, etc.)
+│   ├── templates/                     # Plantillas (IEEE 830, ADR, etc.)
+│   ├── versioning/                    # Tracking de versiones
+│   ├── monitoring/                    # Docs de monitoreo
+│   └── security/                      # Docs de seguridad
+│
+├── specs/                             # Especificaciones de requisitos (IEEE 830)
+├── libs/                              # Librerias compartidas
+├── scripts/                           # Scripts de utilidad (admin, setup, validacion)
+├── logs/                              # Logs de aplicacion (backend, mobile)
+├── linear-todo-templates/             # Templates para issues de Linear
+│
+└── .github/
+    └── workflows/                     # CI/CD pipelines
 ```
 
-## 📚 Descripción de Archivos
+## Descripcion de Directorios
 
-### Archivos Principales
+| Directorio | Descripcion |
+|------------|-------------|
+| `apps/` | Aplicaciones del monorepo: backend API, app movil Flutter, y catalogo Widgetbook |
+| `infrastructure/` | Infraestructura como codigo: Terraform, Helm, Docker, KMS, scripts de infra |
+| `k8s/` | Manifiestos Kubernetes de aplicacion con Kustomize overlays y ArgoCD GitOps |
+| `skills/` | Agent Skills para asistentes IA (Flutter, CI/CD, SRE, backend, etc.) |
+| `docs/` | Documentacion del proyecto, plantillas, versionado, monitoreo y seguridad |
+| `specs/` | Especificaciones de requisitos siguiendo estandar IEEE 830 |
+| `libs/` | Librerias y paquetes compartidos entre aplicaciones |
+| `scripts/` | Scripts de utilidad para administracion, setup y validacion |
+| `logs/` | Logs de aplicacion separados por servicio (backend, mobile) |
+| `linear-todo-templates/` | Templates reutilizables para issues en Linear |
+| `.github/workflows/` | Pipelines de CI/CD con GitHub Actions |
 
-| Archivo | Descripción | Importancia |
-|---------|-------------|-------------|
-| `AGENTS.md` | 📖 Documentación completa de todos los skills disponibles | ⭐⭐⭐⭐⭐ |
-| `README.md` | 🚀 Guía de inicio rápido y configuración | ⭐⭐⭐⭐⭐ |
-| `.cursor/mcp.json` | ⚙️ Configuración del Flutter MCP Server | ⭐⭐⭐⭐⭐ |
-| `CONTRIBUTING.md` | 🤝 Guía para nuevos contribuidores | ⭐⭐⭐⭐ |
-| `CHANGELOG.md` | 📝 Registro de cambios y versiones | ⭐⭐⭐ |
-| `LICENSE` | 📄 Licencia del proyecto (MIT) | ⭐⭐⭐ |
+## Arquitectura de la App Movil
 
-## 🎯 Skills Documentados en AGENTS.md
+La estructura de `apps/mobile/lib/` sigue **Clean Architecture** organizada por features, con **Atomic Design** para componentes UI compartidos.
 
-### 1️⃣ Patrón MVVM
-```
-📦 Skill ID: flutter-mvvm-pattern
-📊 Nivel: Intermedio
-🎨 Enfoque: Separación UI/Lógica
-🔧 Herramientas: Provider, ChangeNotifier
-```
+### Clean Architecture (por feature)
 
-**Estructura de Proyecto MVVM:**
-```
-lib/
-├── core/
-│   ├── constants/
-│   ├── utils/
-│   └── extensions/
-├── models/           # 📊 Datos y lógica de negocio
-│   ├── entities/
-│   └── dto/
-├── views/            # 🎨 Interfaz de usuario
-│   ├── screens/
-│   ├── widgets/
-│   └── dialogs/
-├── viewmodels/       # 🧠 Lógica de presentación
-│   └── providers/
-└── services/         # 🔌 APIs y servicios
-    ├── api/
-    ├── storage/
-    └── navigation/
-```
+Cada feature es un modulo independiente con tres capas:
 
-### 2️⃣ Clean Architecture
-```
-📦 Skill ID: flutter-clean-architecture
-📊 Nivel: Avanzado
-🎨 Enfoque: Separación en capas
-🔧 Herramientas: BLoC, GetIt, Dartz
-```
+| Capa | Contenido | Depende de |
+|------|-----------|------------|
+| `domain/` | Entities, use cases, repository interfaces | Nada (capa mas interna) |
+| `data/` | Datasources, models, repository implementations | `domain/` |
+| `presentation/` | Pages, widgets, providers/controllers | `domain/` |
 
-**Estructura de Clean Architecture:**
-```
-lib/
-├── core/
-│   ├── error/
-│   ├── usecases/
-│   ├── network/
-│   └── utils/
-├── features/
-│   └── [feature_name]/
-│       ├── data/              # 💾 Capa de Datos
-│       │   ├── datasources/
-│       │   │   ├── remote_datasource.dart
-│       │   │   └── local_datasource.dart
-│       │   ├── models/
-│       │   └── repositories/
-│       ├── domain/            # 🎯 Capa de Dominio
-│       │   ├── entities/
-│       │   ├── repositories/
-│       │   └── usecases/
-│       └── presentation/      # 🎨 Capa de Presentación
-│           ├── bloc/
-│           ├── pages/
-│           └── widgets/
-└── injection_container.dart   # 💉 Dependency Injection
-```
+Las dependencias son **unidireccionales**: `presentation/` y `data/` dependen de `domain/`, nunca al reves.
 
-### 3️⃣ Configuración Inicial
-```
-📦 Skill ID: flutter-project-setup
-📊 Nivel: Básico
-🎨 Enfoque: Setup estándar
-```
+### Atomic Design (UI compartida)
 
-### 4️⃣ Testing Comprehensivo
-```
-📦 Skill ID: flutter-testing-strategy
-📊 Nivel: Avanzado
-🎨 Enfoque: Unit/Widget/Integration tests
-```
+Los componentes UI reutilizables viven en `shared/ui/` y siguen niveles de complejidad creciente:
 
-### 5️⃣ CI/CD Pipeline
-```
-📦 Skill ID: flutter-cicd
-📊 Nivel: Avanzado
-🎨 Enfoque: Automatización
-```
+| Nivel | Descripcion | Ejemplo |
+|-------|-------------|---------|
+| `atoms/` | Componentes indivisibles | Boton, TextField, Icono |
+| `molecules/` | Combinacion de 2-3 atoms | Input con label, IconButton con tooltip |
+| `organisms/` | Secciones funcionales completas | AppBar, Form, Card con acciones |
+| `templates/` | Layouts de pagina (sin datos) | Scaffold con slots, grid layout |
 
-## ⚙️ Flutter MCP Server
+### State Management Recomendado
 
-### Configuración (.cursor/mcp.json)
-
-```json
-{
-  "mcpServers": {
-    "dart": {
-      "command": "dart",
-      "args": ["mcp-server", "--force-roots-fallback"]
-    }
-  }
-}
-```
-
-### 🔧 Capacidades
-
-| Capacidad | Descripción |
-|-----------|-------------|
-| 🔍 `dart_analysis_get_errors` | Análisis estático de código |
-| 📦 `pub_dev_search` | Búsqueda de paquetes |
-| ➕ `pub_add` | Agregar dependencias |
-| 🌳 Widget Tree | Inspección del árbol de widgets |
-| 🐛 Error Detection | Detección de errores de runtime |
-| ⚡ DTD Access | Dart Tooling Daemon |
-
-## 🚀 Flujo de Uso
-
-```mermaid
-graph TD
-    A[👤 Usuario] -->|Lee| B[📄 AGENTS.md]
-    B -->|Elige Skill| C[🤖 Asistente IA]
-    C -->|Usa| D[⚙️ MCP Server]
-    D -->|Genera| E[📱 Proyecto Flutter]
-    E -->|Sigue| F[🏗️ Arquitectura]
-    F -->|Testing| G[✅ Tests]
-    G -->|Deploy| H[🚀 Producción]
-```
-
-## 📋 Checklist de Uso
-
-Para generar un nuevo proyecto:
-
-- [ ] 1. Abrir proyecto en editor con MCP habilitado
-- [ ] 2. Verificar que MCP Server está activo
-- [ ] 3. Leer `AGENTS.md` y elegir un skill
-- [ ] 4. Solicitar a IA que genere el proyecto usando el skill
-- [ ] 5. Revisar la estructura generada
-- [ ] 6. Ejecutar tests
-- [ ] 7. Personalizar según necesidades
-
-## 🎨 Ejemplos de Prompts
-
-### Para MVVM:
-```
-Genera una app de lista de tareas usando flutter-mvvm-pattern con:
-- CRUD de tareas
-- Filtros por estado
-- Búsqueda
-- Persistencia local
-```
-
-### Para Clean Architecture:
-```
-Implementa un módulo de productos usando flutter-clean-architecture con:
-- Listado de productos
-- Detalle de producto
-- Carrito de compras
-- Integración con API REST
-```
-
-### Con MCP Server:
-```
-Usando el MCP server:
-1. Analiza errores en el proyecto actual
-2. Busca un paquete para manejo de estados
-3. Agrégalo e implementa el patrón MVVM
-4. Corrige cualquier error de layout
-```
-
-## 🔗 Referencias Rápidas
-
-| Recurso | URL |
-|---------|-----|
-| 🌐 Flutter MCP Server | https://dart.dev/tools/mcp-server/ |
-| 📖 Flutter Docs | https://docs.flutter.dev |
-| 🎯 Dart Docs | https://dart.dev |
-
-## 📊 Estadísticas del Proyecto
-
-- **Skills Disponibles:** 5
-- **Arquitecturas Principales:** 2 (MVVM, Clean)
-- **Líneas de Documentación:** ~1000+
-- **Ejemplos de Código:** 20+
-- **Compatibilidad:** Flutter 3.35+, Dart 3.9+
-
-## 🎯 Próximas Características
-
-- [ ] Más skills (Riverpod, GetX, Modular)
-- [ ] Ejemplos completos en `/examples`
-- [ ] Templates automatizados
-- [ ] Video tutoriales
-- [ ] Integración con más IDEs
-
----
-
-**💡 Tip:** Comienza con el skill `flutter-mvvm-pattern` si eres nuevo en arquitecturas de Flutter, o salta directamente a `flutter-clean-architecture` si buscas máxima escalabilidad.
-
-**Última actualización:** Diciembre 2025
-
+| Framework | Cuando usarlo | Paquete |
+|-----------|---------------|---------|
+| **Riverpod** | Proyectos de cualquier escala. Providers reactivos, compile-safe, code generation opcional. | [`riverpod`](https://pub.dev/packages/riverpod) |
+| **Air Framework** | Proyectos enterprise/large-scale. Framework modular con state reactivo (`@GenerateState`), DI, routing y DevTools. | [`air_framework`](https://pub.dev/packages/air_framework) |
