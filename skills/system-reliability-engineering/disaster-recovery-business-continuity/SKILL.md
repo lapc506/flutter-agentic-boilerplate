@@ -7,7 +7,7 @@
 | **ID** | `sre-disaster-recovery-business-continuity` |
 | **Nivel** | 🔴 Avanzado |
 | **Versión** | 1.0.0 |
-| **Keywords** | `disaster-recovery`, `business-continuity`, `backup`, `failover`, `rpo`, `rto`, `dr-plan` |
+| **Keywords** | `disaster-recovery`, `business-continuity`, `backup`, `failover`, `rpo`, `rto`, `dr-plan`, `gcp`, `opentofu`, `irreversible-choices`, `state-protection` |
 | **Referencia** | [AWS Disaster Recovery](https://aws.amazon.com/disaster-recovery/) |
 
 ## 🔑 Keywords para Invocación
@@ -19,6 +19,9 @@
 - `rpo`
 - `rto`
 - `dr-plan`
+- `opentofu`
+- `prevent-destroy`
+- `cloud-run`
 - `@skill:disaster-recovery`
 
 ### Ejemplos de Prompts
@@ -37,6 +40,14 @@ Setup business continuity plan para servicios críticos
 
 ```
 @skill:disaster-recovery - Plan completo de DR y BC
+```
+
+```
+Proteger estado en OpenTofu contra un destroy o un replace accidental
+```
+
+```
+El tofu plan sale verde pero el cambio no llegó a las máquinas
 ```
 
 ## 📖 Descripción
@@ -331,6 +342,166 @@ spec:
         - name: REPLICATION_MODE
           value: "replica"
 ```
+
+### 6. DR sobre GCP + OpenTofu: decisiones irreversibles y planes que no llegan
+
+> **Todo lo de arriba sigue vigente.** RPO/RTO, la estrategia de backups, los
+> procedimientos de failover y el multi-región siguen siendo el camino. Esta sección agrega
+> dos cosas que un stack declarado en OpenTofu introduce y que ningún runbook de arriba
+> cubre: **elecciones que no se pueden deshacer**, y **planes verdes que no llegan a la
+> máquina**.
+
+#### 6.1 Elegí el almacén por su MODO DE FALLA, no por costo ni comodidad
+
+Es el mismo criterio que gobierna un plan de DR, aplicado un nivel más abajo: **no importa
+tanto qué tan seguido falla, importa qué se ve cuando falla.**
+
+*Comparación tomada de
+`dojo-os @ origin/develop:openspec/changes/2026-08-02-observability-liveness-axis/design.md`;
+las filas describen el razonamiento de esa decisión, **no un benchmark corrido acá**.*
+
+| candidato | qué pasa cuando el almacén no responde |
+|---|---|
+| **Firestore en modo Datastore** | **lanza un error atrapable** — se distingue de "no hay datos" |
+| Objeto en GCS | lanza, pero un objeto corrupto pierde las N unidades de una |
+| Valkey / Redis | un reinicio de instancia deja **todas** las claves ausentes → se lee "todo muerto" |
+| SaaS de cron monitoring | **falla hacia el silencio**: si el proveedor está caído, nadie se entera |
+
+La cuarta fila es la peor para DR: un componente que **falla hacia el silencio** es
+indistinguible de uno sano, y es exactamente el que no querés en el camino de recuperación.
+
+#### 6.2 Una elección irreversible se declara en código, nunca se clickea
+
+**El modo de una base Firestore —Native o Datastore— no se puede cambiar después**, y un
+proyecto sostiene una sola. Es la definición de decisión irreversible, y por eso es lo
+último que debería vivir en una consola: en un archivo versionado tiene diff, revisor y
+fecha; en una consola no tiene ninguno de los tres.
+
+```hcl
+# tofu/heartbeat-liveness.tf — DojoCodingLabs/dojo-infra-gitops PR #48
+resource "google_firestore_database" "heartbeat" {
+  project     = var.alerts_project_id
+  name        = "(default)"
+  location_id = var.region
+  type        = "DATASTORE_MODE"   # IRREVERSIBLE
+
+  # Un `tofu destroy` no puede llevarse el historial con él.
+  deletion_policy = "ABANDON"
+
+  lifecycle {
+    # El modo es irreversible y la ubicación no se puede mover. Un plan que propone
+    # REEMPLAZAR esta base es un plan que propone perder los datos, y tiene que fallar
+    # ruidosamente en vez de aplicar callado.
+    prevent_destroy = true
+  }
+}
+```
+
+**Los dos atributos hacen cosas distintas y hacen falta los dos:**
+
+| atributo | contra qué protege |
+|---|---|
+| `prevent_destroy = true` | contra un `plan` que propone **recrear** el recurso (cambio de atributo ForceNew) |
+| `deletion_policy = "ABANDON"` | contra que un `tofu destroy` deliberado se lleve los datos con la declaración |
+
+**Checklist para cualquier recurso con estado en un árbol de OpenTofu:**
+
+- [ ] ¿Alguno de sus atributos es ForceNew? Listalos en un comentario **arriba del recurso**.
+- [ ] ¿La elección es reversible? Si no, decilo en el comentario y agregá `prevent_destroy`.
+- [ ] ¿El `destroy` se lleva datos? `deletion_policy` / `skip_final_snapshot = false`.
+- [ ] ¿El recurso ya existe en la nube? Entonces necesita un **`import` block**, no un
+      `apply` — sin eso, `apply` crea un **segundo** conjunto al lado del vivo y nada da
+      error. (Ver el skill `alerting-incident-management`, §7.5.)
+
+#### 6.3 Un `tofu plan` verde NO es un cambio entregado
+
+Este es el que más caro sale, porque el gate está verde y la conclusión razonable es la
+equivocada.
+
+*Reportado por quien lo midió en `DojoCodingLabs/dojo-infra-gitops` PR #23 (merge
+`7231482`, 2026-07-31) y **no re-corrido en este pase**:* un cambio a
+`tofu/modules/runner-pool/startup.sh.tftpl` produce
+`No changes. Your infrastructure matches the configuration.`, y el `apply` post-merge
+reporta `0 added, 0 changed, 0 destroyed`. Las cinco VMs **sí** están en el state y **sí**
+se refrescan. Igual: cero diff.
+
+**Los dos mecanismos que lo causan sí se verificaron de primera mano**, leyendo el ref
+(`git show origin/main:<archivo>` sobre `dojo-infra-gitops @ origin/main d6e59f0`). Son
+independientes y los dos deliberados y preexistentes:
+
+```hcl
+# tofu/modules/runner-pool/main.tf:74-78
+# El registration token cambia en cada apply (vive una hora), y un token cambiado NO debe
+# recrear una VM viva a mitad de job.
+lifecycle {
+  ignore_changes = [metadata["startup-script"]]
+}
+```
+
+```bash
+# tofu/modules/runner-pool/startup.sh.tftpl:125
+# Aunque el script nuevo llegara a una VM viva, es no-op en un host ya aprovisionado.
+if [ -f /var/lib/dojo-runner-provisioned ]; then
+  log "already provisioned; nothing to do"
+  exit 0
+fi
+```
+
+El primero **suprime exactamente el campo que cualquier cambio al script toca**. El segundo
+lo neutraliza aunque llegue.
+
+> **Un `plan` verde sobre un cambio de startup script es el gate mirando la propiedad
+> ADYACENTE.** El cambio aplica solo a VMs **creadas después** del merge. Llevarlo a la
+> flota viva es un *replace* de VMs: una operación de flota aparte, con su propia ventana y
+> su propio riesgo.
+
+**Qué hacer con eso, en un contexto de DR:**
+
+1. **Decilo explícitamente en el PR.** Quien ve `plan` verde concluye razonablemente que el
+   merge arregla el problema que motivó el cambio, y no lo hace.
+2. **Verificá contra la máquina, no contra el plan.** El comando que contesta es el que
+   interroga al host o al proveedor, nunca el que interroga al state.
+3. **Y el comentario de `plan` en el PR viene TRUNCADO** (`…output truncated, see the job
+   log for the full plan…`), así que **la ausencia de un recurso ahí no es evidencia de
+   nada**. Hay que ir al log del job.
+
+#### 6.4 Las cuatro trampas de despliegue que rompen un failover a GCP
+
+Nombradas acá porque las cuatro se descubren tarde, en el peor momento posible.
+
+| trampa | qué pasa | cómo se evita |
+|---|---|---|
+| **Secreto sin versión** | **Cloud Run rechaza la revisión entera** y nunca la crea. No es que arranque y falle al leer. Un contenedor creado y vacío cuenta como sin versión | crear la versión **antes** de referenciarla; y dejar de montar lo que nadie lee |
+| **Sin `--service-account`** | el servicio corre con la identidad por defecto de Compute Engine, que nadie eligió. Otorgarle un rol se lo otorga a **todas** las VMs del proyecto | pasar `--service-account` explícito; verificado con `grep -c 'service-account' scripts/deploy.sh` → **0** en `dojo-infra-alerts @ origin/main 2304b6e` |
+| **API no habilitada** | el recurso se declara, el tick nunca dispara, y todo reporta `success` | declarar `google_project_service` y confirmar con `gcloud services list --enabled` |
+| **Proyecto heredado del provider** | el recurso se crea en el proyecto equivocado y llama a nada mientras reporta éxito | nombrar `project` **explícitamente en cada recurso**, no heredarlo |
+
+**Y la regla que las cubre a las cuatro:** en un `tofu`, una variable sin setear tiene que
+producir **cero recursos**, no un recurso apuntando a nada.
+
+```hcl
+locals { heartbeat_enabled = var.alerts_service_url != "" }
+
+resource "google_cloud_scheduler_job" "heartbeat_liveness" {
+  count = local.heartbeat_enabled ? 1 : 0
+  # ...
+}
+
+output "heartbeat_liveness_job" {
+  # Vacío es una respuesta real acá, y se reporta como tal en vez de como un blanco.
+  value = local.heartbeat_enabled ? (
+    google_cloud_scheduler_job.heartbeat_liveness[0].name
+  ) : "NOT CREATED: alerts_service_url is unset"
+}
+```
+
+#### 6.5 Un DR test que reporta "no pasó nada" no probó nada
+
+El `dr-test.sh` de este skill simula un desastre y verifica los procedimientos. **Antes de
+confiar en su resultado**, verificá que los controles de los que depende puedan ponerse en
+rojo: un test de DR sobre infraestructura no instrumentada reporta éxito y se lee como
+resiliencia. Ver el skill `chaos-engineering`, §6, que documenta la secuencia de cinco pasos
+para validar un control antes de usarlo como instrumento de medición.
 
 ## 🎯 Mejores Prácticas
 

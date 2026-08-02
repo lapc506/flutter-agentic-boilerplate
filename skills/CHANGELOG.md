@@ -230,6 +230,53 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [3.1.0] - 2026-08-02
+
+### Cambiado - Skills de SRE: ejes de liveness y ejemplos GCP + OpenTofu
+
+Extensión de 5 skills existentes de `system-reliability-engineering/` con lo aprendido en
+tres repositorios de producción sobre **GCP y OpenTofu**. Medido antes de escribir sobre
+`main @ f0cca00`: **0 de 15** `SKILL.md` mencionaban OpenTofu/Terraform y **0 de 15**
+mencionaban GCP/Cloud Run/Firestore.
+
+Todo lo nuevo se agrega **al lado** de lo existente. Ninguna sección de Kubernetes, AWS,
+Prometheus o Litmus fue removida ni reescrita.
+
+- [x] **`observability-stack/` §6** — La escalera de liveness sobre GCP + Cloud Run +
+  OpenTofu: los 4 niveles (probe, heartbeat, absence, synthetic journey), por qué `retain`
+  es lo que hace posible `assert`, el receptor Cloud Run sin dependencias, el almacén
+  elegido por su modo de falla, la regla de tres valores (`unverifiable`), el tick de Cloud
+  Scheduler declarado en OpenTofu, las 4 acciones humanas que requiere, y por qué APM vende
+  localización y no detección.
+
+- [x] **`alerting-incident-management/` §7** — Alerting como código en GCP: la regla de
+  *"ningún control cuenta como desplegado hasta que se lo vio en rojo a propósito"*, el modo
+  de falla «cableado y mudo», el discriminador IBM⇄Checkly sobre monitoring-as-code
+  (segundo artefacto vs. el mismo), y la adopción con `import` blocks con sus tres trampas
+  del provider de GCP.
+
+- [x] **`chaos-engineering/` §6** — **Corrección de un supuesto del skill**: asumía que la
+  detección ya funciona. Se agrega el prerrequisito, con la secuencia de 5 pasos para
+  validar un control antes de usarlo como instrumento. Un game day sobre infraestructura no
+  instrumentada reporta *"no pasó nada"* y se lee como resiliencia.
+
+- [x] **`slo-sli-sla/` §8** — El punto ciego del MTTR (mide desde que el incidente se
+  *reporta*, así que un fallo no detectado tiene MTTR cero y sale perfecto), MTTD y las
+  métricas que faltan, y el tercer estado de un SLI cuando `total_events` es cero.
+
+- [x] **`disaster-recovery-business-continuity/` §6** — DR sobre GCP + OpenTofu: elegir el
+  almacén por su modo de falla, declarar en código las decisiones irreversibles
+  (`prevent_destroy` + `deletion_policy`), por qué un `tofu plan` verde no es un cambio
+  entregado, y las 4 trampas de despliegue que rompen un failover a GCP.
+
+### Documentación
+
+- [x] Keywords e invocaciones actualizadas en los 5 skills y en `skills/README.md`
+- [x] Cada afirmación lleva su evidencia (`file:line`, comando o ref); lo tomado de una
+  fuente sin re-verificar está marcado **en la oración que lo afirma**
+
+---
+
 ## [Unreleased]
 
 ### Planeado para Futuras Versiones

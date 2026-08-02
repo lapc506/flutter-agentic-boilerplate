@@ -7,7 +7,7 @@
 | **ID** | `sre-alerting-incident-management` |
 | **Nivel** | 🔴 Avanzado |
 | **Versión** | 1.0.0 |
-| **Keywords** | `alerting`, `incident-management`, `pagerduty`, `opsgenie`, `oncall`, `runbooks` |
+| **Keywords** | `alerting`, `incident-management`, `pagerduty`, `opsgenie`, `oncall`, `runbooks`, `monitoring-as-code`, `gcp`, `opentofu`, `terraform-import`, `alert-policy` |
 | **Referencia** | [Google SRE - On-Call](https://sre.google/workbook/on-call/), [PagerDuty](https://www.pagerduty.com/) |
 
 ## 🔑 Keywords para Invocación
@@ -19,6 +19,9 @@
 - `oncall`
 - `runbooks`
 - `incident-response`
+- `monitoring-as-code`
+- `alert-policy`
+- `opentofu`
 - `@skill:alerting`
 
 ### Ejemplos de Prompts
@@ -37,6 +40,14 @@ Configura runbooks y on-call rotation
 
 ```
 @skill:alerting - Sistema completo de alertas e incidentes
+```
+
+```
+Adoptar en OpenTofu las alert policies que se crearon a mano en la consola de GCP
+```
+
+```
+¿Cómo pruebo que esta alerta puede ponerse en rojo?
 ```
 
 ## 📖 Descripción
@@ -517,6 +528,178 @@ inhibit_rules:
 # 5. Alert Classification
 # Only page on actionable alerts
 # Use different channels for different severities
+```
+
+### 7. Alerting como código en GCP — y el discriminador que decide si se pudre
+
+> **Todo lo de arriba sigue vigente.** Alertmanager, PagerDuty y los runbooks siguen siendo
+> el camino sobre Prometheus/Kubernetes. Esta sección cubre el caso GCP + OpenTofu, donde
+> las alertas viven en `google_monitoring_alert_policy` en vez de en reglas de Prometheus, y
+> agrega la pregunta que ninguna de las dos configuraciones contesta sola: **¿esta alerta
+> puede ponerse en rojo?**
+
+#### 7.1 La regla que gobierna todo lo demás
+
+> **Ningún control cuenta como desplegado hasta que se lo vio ponerse en rojo a propósito.**
+
+No es una postura, es lo que la evidencia obliga. *Del registro
+`openspec/changes/2026-08-02-observability-liveness-axis/design.md` en
+`DojoCodingLabs/dojo-os @ origin/develop 18d4f7da3`, **no re-medido acá**:* tres alertas de
+un servicio real se ejercitaron una vez y llevaban meses en silencio sin que nadie lo
+notara.
+
+| control | cómo se lo pone en rojo a propósito |
+|---|---|
+| sink de heartbeats | apagar la URL y confirmar que el check **falla**, no que sale vacío |
+| liveness de un bucket | congelar el productor 48 h y confirmar que la alerta llega |
+| synthetic monitor | romper un paso del flujo y **cronometrar** cuánto tarda en avisar |
+
+La tercera columna importa: el tiempo de detección se **mide**, no se estima.
+
+#### 7.2 Cableado y mudo: el modo de falla que un dashboard no muestra
+
+Verificado en `dojo-infra-alerts @ origin/main 2304b6e`: el servicio expone ocho rutas
+HTTP, todas funcionando, y su README documenta siete de ellas como disparadas por un
+*"Cloud Scheduler tick"*.
+
+**`cloudscheduler.googleapis.com` no estaba habilitada** — *medido contra GCP el
+2026-08-02 por el registro citado arriba y **no re-corrido en este pase***. Los endpoints
+existían, respondían, y **nada los disparaba**. Cuatro canales de Slack estaban cableados a
+ese servicio y recibían cero.
+
+El barrido original tuvo el cuidado de no sobre-afirmar, y conviene copiarlo: lo demostrado
+fue *"cero requests en los últimos 30 días"*, **no** *"nunca corrió"*.
+
+**Qué mirar, en este orden, antes de confiar en un canal de alertas:**
+
+1. ¿La API que dispara el control está habilitada? (`gcloud services list --enabled`)
+2. ¿Hay requests reales en la ventana? Cero requests es un hallazgo, no un blanco.
+3. ¿El canal recibió algo alguna vez, y de este control en particular?
+4. ¿Alguien vio este control en rojo, a propósito, con fecha?
+
+#### 7.3 El caso más fino: la alerta que fabrica la apariencia de dueño
+
+*Tomado del mismo registro y no re-medido en este pase:* **95 alertas** enrutadas a un
+canal llevaban la nota `Routed to #alerts-sentry so Doji can triage`, y el agente nombrado
+**no publicó ni una vez** en esa ventana. La nota le decía a todo humano que leyera el
+canal que el ítem ya estaba atendido.
+
+**Una alerta que nombra a un dueño no prueba que ese dueño exista.** Es la misma familia que
+`resolve` en el camino de observabilidad: *nada puede nombrar lo que no existe*, y un
+destinatario inventado es peor que ninguno porque suprime el reflejo de mirar.
+
+#### 7.4 Monitoring as code: dos posiciones que parecen contradecirse
+
+La industria sostiene las dos, y **las dos tienen razón sobre cosas distintas**:
+
+| | qué llama "monitoring as code" | por qué se pudre, o por qué no |
+|---|---|---|
+| **IBM** | escribir a mano collectors, tracing, dashboards y reglas de alerta | es un **segundo artefacto** que nadie corre hasta que falla, y deriva del sistema que describe |
+| **Checkly** | desplegar como monitor un spec E2E que ya existe | **no hay segundo artefacto**: CI ya lo corre en cada PR, así que se mantiene solo |
+
+> **El discriminador es si el código de monitoreo es un segundo artefacto o el mismo.**
+
+Por eso reusar los specs E2E ya existentes como synthetic monitors es seguro, y escribir
+probes a mano por servicio no lo sería. La regla operativa: **si ya existe un programa que
+contesta la pregunta, se corre; no se escribe el segundo.**
+
+Y el propio checklist de autoevaluación de IBM incluye *"How many performance or
+availability incidents are we **missing** per month or quarter?"* — hace la pregunta de
+liveness y su producto no la contesta.
+
+> *Las citas de IBM y Checkly están tomadas del plan de sesión `plan-observability-layer`;
+> **no se re-consultaron las páginas originales en este pase**.*
+
+#### 7.5 Adoptar alertas hechas a mano: el `import` block, no `tofu import`
+
+Este es el paso que más se saltea y el que hace **activamente daño** si falta.
+
+**Re-medido para este documento** sobre `DojoCodingLabs/dojo-infra-gitops`:
+
+```bash
+### ref: origin/main @ d6e59f0 | delta: none
+git grep -lE 'google_monitoring|monitoring_alert_policy|uptime_check' origin/main -- tofu/
+# → cero filas (exit 1)
+
+git grep -ohE '^resource "([a-z_]+)"' origin/main -- tofu/ | sort | uniq -c | sort -rn
+# → 18 declaraciones: compute, IAM, secrets, artifact registry. Ninguna de monitoring.
+```
+
+**Cero recursos `google_monitoring_*` en todo el árbol de OpenTofu.** Cada uptime check,
+cada política de alerta y los dos canales de notificación se habían creado a mano en la
+consola de GCP. El costo no fue hipotético: **cuatro de los seis checks
+llevaban la string literal `--display-name=` dentro de su nombre visible** —la huella de un
+script pasando el flag por una capa extra de comillas— y nadie lo notó durante meses,
+**porque no había diff que leer**.
+
+**Y declarar los recursos sin importarlos duplica el tablero, en silencio:**
+
+```hcl
+# tofu/monitoring-imports.tf — dojo-infra-gitops PR #27
+#
+# SIN ESTE ARCHIVO EL CAMBIO ES ACTIVAMENTE DAÑINO. `monitoring.tf` declara recursos que
+# YA EXISTEN; sin un `import` que ate cada declaración al objeto vivo, `apply` crea un
+# SEGUNDO conjunto al lado del de la consola: doce uptime checks donde van seis, cada par
+# sondeando el mismo host, y dos políticas de alerta por incidente. Nada da error. El
+# tablero simplemente se duplica, y el duplicado que nadie declaró es el que conserva el
+# camino viejo y equivocado.
+import {
+  provider = google.monitoring
+  to       = google_monitoring_uptime_check_config.marketing_site_prod
+  id       = "projects/<proj>/uptimeCheckConfigs/display-name-production-...-RTCiHItDixI"
+}
+```
+
+**Bloques `import` en vez de invocaciones `tofu import`, a propósito:** la atadura queda
+revisable en el diff y re-corrible por cualquiera, en vez de vivir en el historial de shell
+de quien fue primero.
+
+**Tres trampas concretas del provider de GCP.** *Las tres están documentadas en el cuerpo
+de `dojo-infra-gitops` PR #27, que sí se leyó (`gh pr diff 27`); los planes que las
+revelaron **no se re-corrieron acá**:*
+
+- **`provider` Y `project`, en cada recurso y en cada `import`.** Un primer intento usó solo
+  `project =` sin alias, razonando que un alias es para credenciales distintas. `tofu plan`
+  lo refutó: el provider **no lee `project` de un ID de import calificado**, así que los
+  doce recursos entraron al state como el proyecto equivocado — y `project` es ForceNew. El
+  plan volvió `12 to import, 14 to add, 0 to change, 16 to destroy`: una "adopción" que
+  borra todo lo que adopta.
+- **El ID de un uptime check es inmutable y se deriva slugificando el nombre al crearlo.**
+  Renombrar el check no lo limpia; solo recrearlo, y recrearlo tira el historial de uptime y
+  huerfaniza su política de alerta. El ID feo se queda; **lo que se arregla es el nombre que
+  un humano lee a las 03:00**.
+- **Un canal `webhook_tokenauth` guarda su endpoint en `labels.url`, y para un webhook de
+  Slack esa URL ES la credencial.** El provider ofrece `sensitive_labels` para
+  `auth_token` / `password` / `service_key` y **no** para `url`, así que declarar el canal
+  como recurso significa commitear un bearer vivo. Se **leen** por display name en vez de
+  declararse: la búsqueda es exacta, no necesita secreto, y las políticas igual pueden
+  referenciarlos.
+
+#### 7.6 Un veredicto de alerta también tiene tres estados
+
+`success` contesta hoy dos preguntas distintas: *"verifiqué y estaba bien"* y *"no miré"*.
+Nada aguas abajo las distingue.
+
+| verdicto | significa |
+|---|---|
+| `pass` | se verificó y está bien |
+| `fail` | se verificó y está mal |
+| `unverifiable` | **no se pudo determinar** — nunca es sinónimo de ninguno de los otros dos |
+
+El tercero se escribe **con la palabra completa**, nunca con un símbolo: un vocabulario de
+tilde-o-cruz es lo que colapsa tres estados en dos en la cabeza de quien lee, y la terminal
+es donde ese colapso pasa primero.
+
+```js
+// scripts/receipt.mjs — dojo-os PR #4309. Tres códigos de salida distintos.
+assert.equal(exitCodeFor(PASS), 0);
+assert.equal(exitCodeFor(FAIL), 1);
+assert.equal(exitCodeFor(UNVERIFIABLE), 2);
+// El punto entero: quien testea `code === 0` no debe poder leer "no pude saber" como "bien".
+assert.notEqual(exitCodeFor(UNVERIFIABLE), exitCodeFor(PASS));
+// Y no al revés tampoco: reportar una falla que no observamos es como una alerta se gana
+// la reputación que termina en que alguien la desactiva.
+assert.notEqual(exitCodeFor(UNVERIFIABLE), exitCodeFor(FAIL));
 ```
 
 ## 🎯 Mejores Prácticas

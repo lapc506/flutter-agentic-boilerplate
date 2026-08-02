@@ -7,7 +7,7 @@
 | **ID** | `sre-slo-sli-sla` |
 | **Nivel** | 🔴 Avanzado |
 | **Versión** | 1.0.0 |
-| **Keywords** | `slo`, `sli`, `sla`, `error-budget`, `service-level`, `reliability`, `availability` |
+| **Keywords** | `slo`, `sli`, `sla`, `error-budget`, `service-level`, `reliability`, `availability`, `mttd`, `mttr`, `time-to-detect`, `unverifiable` |
 | **Referencia** | [Google SRE Book - SLIs, SLAs, SLOs](https://sre.google/workbook/slo-document/) |
 
 ## 🔑 Keywords para Invocación
@@ -19,6 +19,9 @@
 - `service-level`
 - `reliability`
 - `availability`
+- `mttd`
+- `mttr`
+- `time-to-detect`
 - `@skill:slo`
 
 ### Ejemplos de Prompts
@@ -37,6 +40,14 @@ Setup SLA compliance y error budget tracking
 
 ```
 @skill:slo - Sistema completo de SLO/SLI/SLA
+```
+
+```
+¿Por qué mi SLO sale verde si el servicio estuvo caído una semana?
+```
+
+```
+Qué hacer cuando total_events es cero y el SLI devuelve NaN
 ```
 
 ## 📖 Descripción
@@ -498,6 +509,113 @@ Variables de entorno:
   "timestamp": "2024-01-15T10:30:00"
 }
 ```
+
+### 8. El punto ciego del MTTR, y el tercer estado de un SLI
+
+> **Todo lo de arriba sigue vigente.** Esta sección no cambia cómo se calculan SLIs, SLOs ni
+> error budgets: agrega las dos formas en que un tablero de SLO puede salir perfecto
+> mientras el servicio está caído.
+
+#### 8.1 El MTTR mide desde que el incidente se REPORTA
+
+Y esa es toda la trampa.
+
+> **Un fallo que nadie reporta tiene MTTR cero y sale perfecto en el tablero.**
+
+IBM descompone el ciclo en `mean-time-to-` **detect · acknowledge · identify · fix ·
+validate**, y propone dos métricas adicionales, **MTTP** (*prevent*) y **MTTN** (*notify*)
+— *atribución tomada del plan de sesión `plan-observability-layer`, **sin re-consultar la
+página de IBM en este pase***.
+El MTTR que casi todo el mundo publica arranca el cronómetro en `acknowledge` — o sea,
+**después** de `detect`. Todo lo que muera en `detect` es invisible para la métrica.
+
+**Dos caídas medidas, con días contados** (tomadas del registro
+`openspec/changes/2026-08-02-observability-liveness-axis/proposal.md` en
+`DojoCodingLabs/dojo-os @ origin/develop 18d4f7da3`, **no re-medidas en este pase**):
+
+| caída | duración sin detectar | cómo se encontró |
+|---|---|---|
+| checkout, mayo | **8 días** | preguntando *"¿por qué Sentry no captó esto?"*. La respuesta tardó 85 días |
+| checkout, julio | **7 días** | un inversionista chocándose con el bug en vivo, durante una ronda activa |
+
+**Las dos tienen MTTR excelente** y costaron quince días de ventas. El DSN de producción
+existía desde marzo y no correspondía a ningún client key vivo: los errores se serializaban,
+se sanitizaban, y se enviaban a la nada.
+
+**Qué agregar a un tablero de SLO para que esto no vuelva a pasar:**
+
+| métrica | qué contesta | por qué el SLO solo no la da |
+|---|---|---|
+| **MTTD** (*detect*) | ¿cuánto tardamos en enterarnos? | el MTTR arranca después |
+| **incidentes NO detectados por nosotros** | ¿cuántos los reportó un usuario? | un SLO no distingue quién avisó |
+| **incidentes que estamos perdiendo** | *"How many availability incidents are we **missing**?"* | requiere una aserción de ausencia, no un SLI |
+
+La tercera fila es el checklist de autoevaluación del propio IBM —*misma fuente, misma
+salvedad*— y es una pregunta que su producto no contesta. Un SLI mide lo que llegó al medidor; ninguna consulta de Prometheus
+te dice que un *exporter* dejó de exportar — eso se ve desde afuera, no desde adentro.
+
+#### 8.2 Un SLI también tiene un tercer estado
+
+El error budget se calcula sobre `good_events / total_events`. La pregunta que casi nunca se
+hace: **¿qué pasa cuando `total_events` es cero?**
+
+```promql
+# Esta consulta devuelve NaN, o "sin datos", cuando el scrape murió.
+sum(rate(http_requests_total{status!~"5.."}[30d]))
+  /
+sum(rate(http_requests_total[30d]))
+```
+
+Un dashboard que renderiza "sin datos" y un dashboard que renderiza 100 % de disponibilidad
+tienen algo en común: **ninguno de los dos es un incidente para el sistema de alertas.** Y
+el primero es el modo de falla del segundo.
+
+**La regla, en la forma en que hay que escribirla en el código del SLO:**
+
+| valor | significa | qué NO puede significar |
+|---|---|---|
+| `pass` | se midió y cumple | — |
+| `fail` | se midió y no cumple | — |
+| `unverifiable` | **no hubo datos que medir** | ni `pass` ni `fail` |
+
+> **Nunca colapses el tercer estado dentro de ninguno de los dos vecinos.** Colapsarlo hacia
+> `pass` esconde el apagón. Colapsarlo hacia `fail` produce falsas alarmas que terminan en
+> que alguien desactiva la alerta, y entonces el día que tiene razón nadie mira.
+
+El modelo verificado, de `dojo-os @ origin/develop:scripts/check-pr-mergeable.mjs`:
+
+> *"`UNKNOWN` means «not computed yet». It does not mean «clean»."*
+>
+> *"2 is deliberately its own code and deliberately non-zero. A caller that cannot tell must
+> not be able to spell that «fine» by testing `!== 1`."*
+
+Y el corolario para un check de liveness sobre N unidades: **si TODAS salen rancias, el
+veredicto es `unverifiable`, no "las N murieron"** — N unidades callándose en la misma
+ventana es mucho más probable que sea el camino de escritura roto que N fallas
+independientes.
+
+```python
+# Extensión del error_budget.py de este skill: el tercer estado explícito.
+def slo_status(good_events: int, total_events: int, target: float) -> str:
+    """Tres estados. `unverifiable` NUNCA se colapsa en pass ni en fail."""
+    if total_events == 0:
+        # No es 100% de disponibilidad. Es ausencia de medición, y hay que decirlo
+        # con la palabra completa: un símbolo de tilde o cruz colapsa tres estados
+        # en dos en la cabeza de quien lee.
+        return "UNVERIFIABLE"
+    return "pass" if (good_events / total_events) >= target else "fail"
+```
+
+#### 8.3 El SLO de un control es distinto del SLO del servicio
+
+Un SLO responde *"¿el servicio cumple?"*. No responde *"¿el medidor sigue midiendo?"*, y esa
+segunda pregunta necesita su propio objetivo, medido desde afuera:
+
+- **Frescura de la señal** — *"cero objetos nuevos en el bucket en 48 h con el productor
+  activo ⇒ alerta"*. Sin una aserción de liveness, un destino que deja de recibir se ve
+  idéntico a un destino tranquilo.
+- **Última vez que este control se vio en rojo, a propósito.** Un control probado hace seis
+  meses no es un control probado. Ver el skill `alerting-incident-management`, §7.1.
 
 ## 🎯 Mejores Prácticas
 

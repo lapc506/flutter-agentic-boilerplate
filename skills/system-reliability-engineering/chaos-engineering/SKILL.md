@@ -7,7 +7,7 @@
 | **ID** | `sre-chaos-engineering` |
 | **Nivel** | 🔴 Avanzado |
 | **Versión** | 1.0.0 |
-| **Keywords** | `chaos-engineering`, `chaos-monkey`, `litmus`, `failure-injection`, `resilience-testing`, `chaos-experiments` |
+| **Keywords** | `chaos-engineering`, `chaos-monkey`, `litmus`, `failure-injection`, `resilience-testing`, `chaos-experiments`, `detection-validation`, `proof-testing`, `game-day` |
 | **Referencia** | [Chaos Engineering Principles](https://principlesofchaos.org/) |
 
 ## 🔑 Keywords para Invocación
@@ -18,6 +18,9 @@
 - `failure-injection`
 - `resilience-testing`
 - `chaos-experiments`
+- `detection-validation`
+- `proof-testing`
+- `game-day`
 - `@skill:chaos-engineering`
 
 ### Ejemplos de Prompts
@@ -38,6 +41,14 @@ Setup Chaos Monkey para probar resiliencia del sistema
 @skill:chaos-engineering - Chaos engineering completo
 ```
 
+```
+¿Estamos listos para un game day? Validá primero la detección
+```
+
+```
+El experimento reportó "no pasó nada" — ¿es resiliencia o ceguera?
+```
+
 ## 📖 Descripción
 
 Chaos engineering es la práctica de inyectar fallos intencionalmente para probar la resiliencia de sistemas. Este skill cubre chaos experiments, failure injection, resilience testing, y herramientas como Litmus y Chaos Monkey.
@@ -53,7 +64,10 @@ Chaos engineering es la práctica de inyectar fallos intencionalmente para proba
 ### ❌ Cuándo NO Usar Este Skill
 
 - Sistemas en desarrollo temprano
-- Sin monitoring adecuado
+- **Sin detección VALIDADA** — no basta con tener monitoring configurado. Ver
+  [§6 El prerrequisito](#6--el-prerrequisito-primero-validar-la-detección-después-inyectar-el-caos):
+  un game day sobre infraestructura no instrumentada reporta *"no pasó nada"* y se lee como
+  resiliencia
 - Sin rollback procedures
 - Sin equipo preparado
 
@@ -274,6 +288,102 @@ def record_experiment(experiment_type: str, status: str, duration: float):
         experiment_type=experiment_type
     ).observe(duration)
 ```
+
+### 6. ⛔ El prerrequisito: primero validar la DETECCIÓN, después inyectar el caos
+
+> **Este skill asume que ya podés detectar.** Todo lo de arriba —Litmus, Chaos Monkey, los
+> experimentos, las métricas— presupone que si el sistema se degrada, algo se pone en rojo.
+> Si ese supuesto es falso, **el game day no falla: reporta "no pasó nada", y eso se lee
+> como resiliencia.**
+
+Esa lectura es el peor resultado posible de un experimento, porque es indistinguible de un
+éxito y encima produce confianza.
+
+#### 6.1 El caso medido
+
+Once controles se midieron entre 2026-07-26 y 2026-08-02 en una plataforma real, y **los
+once tenían la misma forma**: el emisor era correcto, el receptor estaba muerto, y el
+silencio se leía como salud. En los once el código estaba bien y cada test individual
+pasaba.
+
+El registro que los documenta lo pone como no-objetivo explícito
+(`openspec/changes/2026-08-02-observability-liveness-axis/proposal.md` en
+`DojoCodingLabs/dojo-os @ origin/develop 18d4f7da3`):
+
+> *"Chaos engineering. It shares the technique and not the hypothesis: chaos breaks the
+> system to ask whether the **system** survives; this breaks it to ask whether the
+> **control** notices. **A game day against this infrastructure today would report «nothing
+> happened» and be read as resilience.**"*
+
+Dos ejemplos concretos de por qué el tablero se hubiera quedado verde igual — *los dos
+tomados de ese registro y **no re-medidos en este pase***:
+
+- Un servicio de alertas con ocho rutas HTTP funcionando y **cero requests en 30 días**,
+  porque la API que las dispara (`cloudscheduler.googleapis.com`) nunca se habilitó.
+  Cuatro canales de Slack cableados a ese servicio, recibiendo nada.
+- Ocho de nueve proyectos GCP medidos con **cero políticas de alerta**, incluido el proyecto
+  de la flota de CI cuya caída acababa de ocurrir esa misma semana.
+
+#### 6.2 Chaos engineering vs. validación de detección: misma técnica, hipótesis distinta
+
+|  | qué rompe | qué pregunta | falla si… |
+|---|---|---|---|
+| **Chaos engineering** | el sistema | ¿el **sistema** sobrevive? | el sistema se degrada |
+| **Validación de detección** | el sistema | ¿el **control** se entera? | el control no se pone en rojo |
+
+Comparten la inyección de fallos y **no** la hipótesis. La segunda es prerrequisito de la
+primera, no un sinónimo. Tiene nombre propio en otras disciplinas: en seguridad se llama
+**detection validation**; en sistemas críticos, **proof testing**.
+
+#### 6.3 La regla, y cómo se ejecuta
+
+> **Ningún control cuenta como desplegado hasta que se lo vio ponerse en rojo a propósito.**
+
+**Antes del primer game day, corré esta secuencia sobre cada control del que dependa tu
+hipótesis.** No es un experimento de caos: es la calibración del instrumento con el que vas
+a medir el experimento.
+
+```
+Para cada control (alerta, check, monitor, gate):
+
+  1. Nombrá qué señal debería producir cuando el sistema esté degradado.
+  2. Rompé esa señal A PROPÓSITO — apagá la URL del sink, congelá al productor,
+     rompé un paso del flujo.
+  3. Confirmá que el control se pone en ROJO. No que sale vacío.
+     ── Salir vacío es el modo de falla, no la evidencia. ──
+  4. CRONOMETRÁ cuánto tardó en avisar. El tiempo de detección se mide, no se estima.
+  5. Registrá la fecha. Un control probado hace seis meses no es un control probado.
+
+Solo cuando TODOS pasan los 5 pasos, el game day mide lo que creés que mide.
+```
+
+**El paso 3 es donde se cae casi siempre.** Un check que devuelve una lista vacía y un check
+que erroró producen la misma pantalla. Por eso la regla de tres valores importa acá también:
+
+| resultado del control | qué significa | qué NO puede significar |
+|---|---|---|
+| `pass` | se verificó y está bien | — |
+| `fail` | se verificó y está mal | — |
+| `unverifiable` | **no se pudo determinar** | ni `pass` ni `fail` |
+
+Si tu experimento de caos termina con un control en `unverifiable` y lo anotás como
+"el sistema aguantó", el game day no midió nada.
+
+#### 6.4 Y sobre esta infraestructura, en concreto
+
+Este skill documenta Litmus, Chaos Monkey y CronJobs de Kubernetes. **Si tu stack es GCP +
+Cloud Run + OpenTofu sin Kubernetes, nada de eso aplica tal cual** — pero el prerrequisito
+de arriba aplica idéntico, y es la parte que se puede ejecutar hoy sin adoptar ninguna
+herramienta de caos.
+
+El orden correcto para un stack así:
+
+1. **Construir el nivel de ausencia** (ver el skill `observability-stack`, §6): sin él, no
+   hay señal que romper.
+2. **Validar cada control** con los 5 pasos de arriba.
+3. **Recién entonces** evaluar herramientas de inyección de fallos.
+
+Invertir el orden 1 y 3 es comprar un instrumento de medición para un tablero que no mide.
 
 ## 🎯 Mejores Prácticas
 
